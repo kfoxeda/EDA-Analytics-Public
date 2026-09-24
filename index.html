@@ -1,0 +1,4654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EDA Cost Code Dictionary</title>
+<style>
+  :root{
+    --red:#C00000; --blue:#34657F; --gold:#D47E00;
+    --ink:#1B2A32; --paper:#F7F5F1; --line:#DAD5CB; --muted:#6B7680; --green:#3E7A4F;
+  }
+  *{box-sizing:border-box;}
+  body{ margin:0; font-family:'Segoe UI', Tahoma, sans-serif; background:var(--paper); color:var(--ink); padding-bottom:40px; }
+  header{
+    background:var(--blue); color:#fff; padding:18px 20px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    position:sticky; top:0; z-index:20;
+  }
+  header .title h1{ margin:0; font-size:18px; letter-spacing:.02em; font-weight:700; }
+  header .title .sub{ font-size:11.5px; color:#D9E5EA; margin-top:2px; }
+  .header-actions{ display:flex; align-items:center; gap:10px; flex-shrink:0; }
+  .rules-btn{
+    background:#fff; color:var(--blue); border:none; border-radius:20px; padding:9px 16px;
+    font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap;
+  }
+  .lang-toggle{
+    display:flex; background:rgba(255,255,255,.15); border-radius:20px; padding:3px; gap:2px;
+  }
+  .lang-btn{
+    background:none; border:none; color:#D9E5EA; border-radius:16px; padding:6px 12px;
+    font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;
+  }
+  .lang-btn.active{ background:#fff; color:var(--blue); }
+  .container{ max-width:1020px; margin:0 auto; padding:18px 16px 0; }
+  .searchbar{ display:flex; gap:10px; margin-bottom:12px; }
+  .searchbar input{
+    flex:1; padding:12px 14px; font-size:15px; border:1.5px solid var(--line); border-radius:6px; background:#fff; color:var(--ink);
+  }
+  .searchbar input:focus{ outline:none; border-color:var(--blue); }
+  .type-filters{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+  .type-chip{
+    padding:6px 12px; font-size:12.5px; border-radius:20px; border:1.5px solid var(--line);
+    background:#fff; color:var(--muted); cursor:pointer; user-select:none;
+  }
+  .type-chip.active{ background:var(--blue); border-color:var(--blue); color:#fff; }
+
+  .col-header{ display:flex; gap:12px; padding:6px 16px; font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); font-weight:700; }
+  .col-trade{ width:56px; flex-shrink:0; }
+  .col-code{ width:52px; flex-shrink:0; }
+  .col-cat{ flex:1; }
+  .col-status{ width:74px; flex-shrink:0; text-align:right; }
+
+  .phase-group{ margin-bottom:12px; border:1px solid var(--line); border-radius:8px; background:#fff; overflow:hidden; }
+  .phase-header{ display:flex; align-items:center; justify-content:space-between; padding:13px 16px; cursor:pointer; }
+  .phase-header:hover{ background:#FBFAF8; }
+  .phase-left{ display:flex; align-items:center; gap:12px; }
+  .phase-code{
+    font-family:'Consolas', monospace; font-weight:700; font-size:12.5px; color:var(--red);
+    background:#FBEAEA; padding:4px 8px; border-radius:4px; min-width:52px; text-align:center;
+  }
+  .phase-name{ font-weight:600; font-size:14.5px; }
+  .phase-meta{ font-size:11.5px; color:var(--muted); display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:2px; }
+  .phase-default-trade{ font-family:'Consolas', monospace; font-size:10px; font-weight:700; padding:1px 7px; border-radius:10px; border:1px solid currentColor; }
+  .trade-toggle{ display:flex; gap:5px; margin-top:8px; flex-wrap:wrap; }
+  .trade-toggle-chip{
+    font-family:'Consolas', monospace; font-weight:700; font-size:11px;
+    padding:3px 9px; border-radius:12px; border:1.5px solid; background:#fff; cursor:pointer;
+  }
+  .phase-def{ font-size:11.5px; color:var(--muted); margin-top:4px; max-width:640px; }
+  .phase-usage{
+    font-size:11.5px; color:var(--ink); margin-top:6px; padding:8px 10px; max-width:640px;
+    background:#F7F5F1; border-left:3px solid var(--blue);
+  }
+  .caret{ color:var(--muted); transition:transform .15s ease; font-size:11px; flex-shrink:0; }
+  .phase-group.open .caret{ transform:rotate(90deg); }
+  .category-list{ display:none; border-top:1px solid var(--line); }
+  .phase-group.open .category-list{ display:block; }
+
+  .category-row{ display:flex; align-items:flex-start; gap:12px; padding:11px 16px; border-top:1px solid #EFECE5; cursor:pointer; }
+  .category-row:hover{ background:#FBFAF8; }
+  .trade-cell{ width:56px; flex-shrink:0; }
+  .trade-chip{ display:inline-flex; align-items:center; gap:4px; font-family:'Consolas', monospace; font-weight:700; font-size:11px; padding:3px 8px; border-radius:12px; }
+  .category-code{
+    width:52px; flex-shrink:0; font-family:'Consolas', monospace; font-size:11.5px; font-weight:700;
+    color:var(--blue); background:#EAF0F2; padding:3px 6px; border-radius:4px; text-align:center; margin-top:1px; height:fit-content;
+  }
+  .category-body{ flex:1; min-width:0; }
+  .category-name{ font-size:13px; font-weight:600; }
+  .category-shared-tag{ font-size:9.5px; font-weight:700; color:var(--blue); background:#EAF0F2; padding:1px 6px; border-radius:8px; margin-left:6px; vertical-align:1px; }
+  .category-range-tag{ font-size:9.5px; font-weight:700; color:var(--muted); background:#EFECE5; padding:1px 6px; border-radius:8px; margin-left:6px; vertical-align:1px; }
+  .category-desc{ font-size:12px; color:var(--muted); margin-top:2px; display:none; }
+  .category-row.expanded .category-desc{ display:block; }
+  .category-usage{ font-size:11.5px; color:var(--ink); margin-top:6px; padding:8px 10px; background:#F7F5F1; border-left:3px solid var(--gold); display:none; }
+  .category-row.expanded .category-usage{ display:block; }
+  .category-status{ width:74px; flex-shrink:0; text-align:right; font-size:10.5px; font-weight:700; padding-top:2px; }
+  .category-section-label{
+    padding:8px 16px 4px; font-size:10px; font-weight:700; text-transform:uppercase;
+    letter-spacing:.05em; color:var(--muted); background:#FBFAF8; border-top:1px solid var(--line);
+  }
+  .category-list .category-section-label:first-child{ border-top:none; }
+  .category-section-label.optional-toggle{
+    cursor:pointer; display:flex; align-items:center; gap:6px; padding:10px 16px;
+  }
+  .section-caret{ font-size:9px; transition:transform .15s ease; }
+  .section-caret.open{ transform:rotate(90deg); }
+  .category-full-code{
+    font-family:'Consolas', monospace; font-weight:700; font-size:12px; color:var(--red);
+    background:#FBEAEA; display:inline-block; padding:2px 8px; border-radius:4px; margin-bottom:6px;
+  }
+  .status-Default{ color:var(--green); }
+  .status-Optional{ color:var(--muted); }
+
+  .no-results{ text-align:center; color:var(--muted); padding:40px 0; font-size:14px; }
+  .note{ margin-top:24px; font-size:11px; color:var(--muted); text-align:center; }
+
+  @media (max-width:600px){
+    .col-header{ display:none; }
+    .trade-cell{ width:auto; }
+    .category-code{ width:auto; }
+    .category-status{ width:auto; margin-left:auto; }
+    .category-row{ flex-wrap:wrap; }
+    header{ flex-wrap:wrap; }
+  }
+
+  .panel-overlay{ display:none; position:fixed; inset:0; background:rgba(27,42,50,.55); z-index:50; }
+  .panel-overlay.open{ display:block; }
+  .panel{
+    position:fixed; top:0; right:0; bottom:0; width:100%; max-width:480px; background:var(--paper);
+    z-index:51; display:flex; flex-direction:column; transform:translateX(100%); transition:transform .2s ease;
+  }
+  .panel-overlay.open .panel{ transform:translateX(0); }
+  .panel-head{ background:var(--blue); color:#fff; padding:16px 18px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+  .panel-head h2{ margin:0; font-size:16px; font-weight:700; }
+  .panel-close{ background:none; border:none; color:#fff; font-size:22px; line-height:1; cursor:pointer; padding:4px; }
+  .panel-tabs{ display:flex; background:#fff; border-bottom:1px solid var(--line); flex-shrink:0; }
+  .panel-tab{ flex:1; padding:12px 6px; text-align:center; font-size:11.5px; font-weight:700; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; }
+  .panel-tab.active{ color:var(--blue); border-bottom-color:var(--blue); }
+  .panel-body{ flex:1; overflow-y:auto; padding:18px; }
+  .panel-tab-content{ display:none; }
+  .panel-tab-content.active{ display:block; }
+
+  .anatomy-example{ display:flex; gap:2px; margin-bottom:16px; font-family:'Consolas', monospace; font-weight:700; font-size:19px; flex-wrap:wrap; align-items:center; }
+  .anatomy-seg{ padding:6px 8px; border-radius:6px; cursor:pointer; border:2px solid transparent; background:#fff; }
+  .anatomy-seg.sep{ padding:6px 2px; cursor:default; color:var(--muted); background:none; }
+  .anatomy-seg.active{ border-color:currentColor; }
+  .anatomy-seg[data-key="trade"]{ color:var(--red); }
+  .anatomy-seg[data-key="phase"]{ color:var(--blue); }
+  .anatomy-seg[data-key="category"]{ color:var(--gold); }
+  .anatomy-seg[data-key="suffix"]{ color:var(--green); }
+  .anatomy-labels{ display:flex; gap:2px; margin-bottom:16px; flex-wrap:wrap; }
+  .anatomy-label{ font-size:9.5px; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); text-align:center; padding-top:2px; }
+  .anatomy-detail{ background:#fff; border:1px solid var(--line); border-radius:8px; padding:14px; font-size:13px; line-height:1.5; min-height:70px; }
+  .anatomy-detail .d-label{ font-weight:700; margin-bottom:4px; font-size:13px; }
+  .anatomy-detail .d-extra{ color:var(--muted); font-size:12px; margin-top:6px; }
+  .anatomy-hint{ font-size:11.5px; color:var(--muted); margin-bottom:14px; }
+  .trade-ref-row{ display:flex; align-items:center; gap:8px; padding:7px 0; border-top:1px solid var(--line); font-size:12.5px; }
+  .trade-ref-row:first-of-type{ border-top:none; }
+  .trade-ref-letter{
+    font-family:'Consolas', monospace; font-weight:700; font-size:12px; width:24px; height:24px; border-radius:5px;
+    display:flex; align-items:center; justify-content:center; background:var(--paper); border:1px solid var(--line); flex-shrink:0;
+  }
+  .rules-list-panel{ padding-left:20px; font-size:13px; line-height:1.7; margin:0; }
+  .rule-row{ display:flex; gap:10px; align-items:flex-start; padding:10px 0; border-top:1px solid var(--line); }
+  .rule-row:first-child{ border-top:none; }
+  .rule-num{ font-weight:700; font-size:13px; color:var(--muted); flex-shrink:0; width:16px; }
+  .rule-body{ flex:1; }
+  .rule-text{ font-size:13px; line-height:1.55; }
+  .rule-tags{ display:flex; gap:5px; margin-top:6px; flex-wrap:wrap; }
+  .rule-tag{
+    font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em;
+    padding:2px 8px; border-radius:10px;
+  }
+  .rule-tag-trade{ background:#FBEAEA; color:var(--red); }
+  .rule-tag-phase{ background:#EAF0F2; color:var(--blue); }
+  .rule-tag-category{ background:#FCEFDD; color:var(--gold); }
+  .rule-tag-suffix{ background:#E8F1EA; color:var(--green); }
+  .rule-filter-bar{ display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap; }
+  .rule-filter{
+    font-size:11.5px; font-weight:700; padding:5px 11px; border-radius:14px;
+    border:1.5px solid var(--line); background:#fff; color:var(--muted); cursor:pointer; user-select:none;
+  }
+  .rule-filter.active{ background:var(--blue); border-color:var(--blue); color:#fff; }
+  .rules-callout{ background:#fff; border:1px solid var(--red); border-radius:6px; padding:10px 12px; font-size:12.5px; margin-top:14px; color:var(--ink); }
+  .rules-section-title{ font-size:13px; font-weight:700; color:var(--blue); margin:18px 0 8px; }
+  .suffix-example{ font-size:12px; font-family:'Consolas', monospace; padding:6px 10px; border-radius:5px; margin:4px 0; }
+  .suffix-good{ background:#E8F1EA; color:var(--green); }
+  .suffix-bad{ background:#FBEAEA; color:var(--red); }
+  .suffix-subnote{ font-size:11px; color:var(--muted); margin:2px 0 8px 14px; line-height:1.5; }
+  .reserved-table{ width:100%; border-collapse:collapse; margin-top:8px; font-size:12.5px; }
+  .reserved-table th{ text-align:left; font-size:10.5px; text-transform:uppercase; color:var(--muted); padding:4px 6px; border-bottom:1px solid var(--line); }
+  .reserved-table td{ padding:7px 6px; border-bottom:1px solid #EFECE5; }
+  .reserved-code{ font-family:'Consolas', monospace; font-weight:700; color:var(--blue); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title">
+    <h1 id="pageTitle">EDA Cost Code Dictionary</h1>
+    <div class="sub" id="headerSub"></div>
+  </div>
+  <div class="header-actions">
+    <div class="lang-toggle">
+      <button class="lang-btn" id="langBtnEn" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" id="langBtnEs" onclick="setLang('es')">ES</button>
+    </div>
+    <button class="rules-btn" id="anatomyRulesBtn" onclick="openPanel('anatomy')"></button>
+  </div>
+</header>
+
+<div class="container">
+  <div class="searchbar">
+    <input id="searchInput" type="text" oninput="render()">
+  </div>
+  <div class="type-filters" id="typeFilters"></div>
+
+  <div class="col-header">
+    <div class="col-trade" id="colTrade"></div>
+    <div class="col-code" id="colCode"></div>
+    <div class="col-cat" id="colCat"></div>
+    <div class="col-status" id="colStatus"></div>
+  </div>
+
+  <div id="results"></div>
+  <div class="note" id="footerNote"></div>
+</div>
+
+<div class="panel-overlay" id="panelOverlay" onclick="if(event.target===this) closePanel()">
+  <div class="panel">
+    <div class="panel-head">
+      <h2 id="panelTitle"></h2>
+      <button class="panel-close" onclick="closePanel()">&times;</button>
+    </div>
+    <div class="panel-tabs">
+      <div class="panel-tab active" data-tab="anatomy" onclick="switchTab('anatomy')" id="tabAnatomy"></div>
+      <div class="panel-tab" data-tab="rules" onclick="switchTab('rules')" id="tabRules"></div>
+      <div class="panel-tab" data-tab="suffix" onclick="switchTab('suffix')" id="tabSuffix"></div>
+      <div class="panel-tab" data-tab="history" onclick="switchTab('history')" id="tabHistory"></div>
+    </div>
+    <div class="panel-body">
+
+      <div class="panel-tab-content active" data-content="anatomy">
+        <div class="anatomy-hint" id="anatomyHint"></div>
+        <div class="anatomy-example" id="anatomyExample"></div>
+        <div class="anatomy-labels" id="anatomyLabels"></div>
+        <div class="anatomy-detail" id="anatomyDetail"></div>
+        <div class="rules-section-title" id="tradeRefTitle"></div>
+        <table class="reserved-table" id="tradeRefTable"></table>
+
+        <div class="rules-section-title" id="categoryRangeTitle"></div>
+        <p style="font-size:12px; color:var(--muted); line-height:1.5;" id="categoryRangeHint"></p>
+        <table class="reserved-table" id="categoryRangeTable"></table>
+      </div>
+
+      <div class="panel-tab-content" data-content="rules">
+        <div id="rulesList"></div>
+        <div class="rules-callout" id="rulesCallout"></div>
+      </div>
+
+      <div class="panel-tab-content" data-content="suffix">
+        <div id="suffixGuideList"></div>
+
+        <div class="rules-section-title" id="reservedSuffixTitle"></div>
+        <p style="font-size:12px; color:var(--muted); line-height:1.5;" id="reservedSuffixHint"></p>
+        <table class="reserved-table" id="reservedTable"></table>
+
+        <div class="rules-callout" id="suffixCallout"></div>
+      </div>
+
+      <div class="panel-tab-content" data-content="history">
+        <div class="rules-section-title" style="margin-top:0;" id="docInfoTitle"></div>
+        <table class="reserved-table" id="metaTable"></table>
+
+        <div class="rules-section-title" id="versionHistoryTitle"></div>
+        <table class="reserved-table" id="changelogTable"></table>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// =====================================================================================
+// DATA — this whole block is regenerated by build_dictionary.py from
+// EDA_Cost_Code_Dictionary.xlsx. Every object key below matches an
+// Excel Table column name exactly (snake_case, one const per tbl_*).
+// Translatable fields may also carry a "<field>_es" sibling column —
+// when present and non-blank, it is used in Spanish mode; otherwise
+// the page falls back to the English field automatically.
+// Do not hand-edit this block once the script is in regular use —
+// edit the workbook and re-run the script instead.
+// ===== DATA START (auto-generated by build_dictionary.py — do not hand-edit) =====
+const META = {
+  "version": "1",
+  "effective_date": "TBD",
+  "status": "In Progress",
+  "status_es": "En Curso",
+  "last_updated_by": "Kirstin Fox",
+  "last_updated_date": "2026-09-18"
+};
+
+const CHANGE_LOG = [
+  {
+    "version": "1",
+    "change_date": "2026-08-21",
+    "author": "Kirstin Fox",
+    "notes": "Initial launch of cost code dictionary deliverable",
+    "notes_es": "Lanzamiento inicial del recurso del diccionario de códigos de costes"
+  }
+];
+
+const RULES = [
+  {
+    "rule_number": "1",
+    "rule_text_en": "Phase Numbers and Descriptions are distinct and represent distinct work, as is defined by the cost code dictionary.",
+    "rule_text_es": "Los Números y las Descripciones de Fase son distintos y representan trabajos distintos, tal y como se define en el diccionario de códigos de costes.",
+    "applies_to": "phase"
+  },
+  {
+    "rule_number": "2",
+    "rule_text_en": "Phase Numbers may not be used interchangeably or modified.",
+    "rule_text_es": "Los Números de Fase no pueden utilizarse indistintamente ni modificarse.",
+    "applies_to": "phase"
+  },
+  {
+    "rule_number": "3",
+    "rule_text_en": "Where applicable, the Trade owning the phase, or scope of work, must be indicated by its corresponding letter as a prefix of the phase.",
+    "rule_text_es": "Cuando proceda, el Oficio responsable de la fase o del ámbito de trabajo deberá indicarse mediante la letra correspondiente como prefijo de la fase.",
+    "applies_to": "trade, phase"
+  },
+  {
+    "rule_number": "4",
+    "rule_text_en": "Category Numbers (First 3 digits of category code) and Descriptions are distinct and represent distinct work, as is defined by the cost code dictionary.",
+    "rule_text_es": "Los Números de Categoría (los tres primeros dígitos del código de categoría) y las Descripciones son distintos y representan trabajos distintos, tal y como se define en el diccionario de códigos de costes.",
+    "applies_to": "category"
+  },
+  {
+    "rule_number": "5",
+    "rule_text_en": "Category Numbers (First 3 digits of category code) may not be used interchangeably or modified.",
+    "rule_text_es": "Los Números de Categoría no pueden utilizarse indistintamente ni modificarse.",
+    "applies_to": "category"
+  },
+  {
+    "rule_number": "6",
+    "rule_text_en": "The Category Suffix (Last 3 characters of category code) is optional and may be used per the Suffix Guidelines. If used, must respect any reserved suffixes.",
+    "rule_text_es": "El Sufijo de Categoría (los tres últimos caracteres del código de categoría) es opcional y puede utilizarse según las directrices sobre sufijos. Si se utiliza, debe respetar los sufijos reservados.",
+    "applies_to": "category, suffix"
+  }
+];
+
+const TRADES = [
+  {
+    "trade_code": "",
+    "trade_label": "Shared",
+    "trade_label_es": "",
+    "phase_range_start": "000",
+    "phase_range_end": "099",
+    "phase_range_notes": "All phases, or scopes of work, that apply to all trades are contained in this range. Trade Code should be applied as needed.",
+    "phase_range_notes_es": ""
+  },
+  {
+    "trade_code": "R",
+    "trade_label": "Roofing Systems",
+    "trade_label_es": "",
+    "phase_range_start": "100",
+    "phase_range_end": "199",
+    "phase_range_notes": "All phases, or scopes of work, traditionally related to Roofing Systems are contained in this range. Trade Code is R by default.",
+    "phase_range_notes_es": ""
+  },
+  {
+    "trade_code": "C",
+    "trade_label": "Panel Systems",
+    "trade_label_es": "",
+    "phase_range_start": "200",
+    "phase_range_end": "299",
+    "phase_range_notes": "All phases, or scopes of work, traditionally related to Panel Systems are contained in this range. Trade Code is C by default.",
+    "phase_range_notes_es": ""
+  },
+  {
+    "trade_code": "G",
+    "trade_label": "Metal & Glass Systems",
+    "trade_label_es": "",
+    "phase_range_start": "300",
+    "phase_range_end": "399",
+    "phase_range_notes": "All phases, or scopes of work, traditionally related to Metal & Glass Systems are contained in this range. Trade Code is G by default.",
+    "phase_range_notes_es": ""
+  },
+  {
+    "trade_code": "M",
+    "trade_label": "Masonry Systems",
+    "trade_label_es": "",
+    "phase_range_start": "400",
+    "phase_range_end": "499",
+    "phase_range_notes": "All phases, or scopes of work, traditionally related to Masonry Systems are contained in this range. Trade Code is M by default.",
+    "phase_range_notes_es": ""
+  },
+  {
+    "trade_code": "H",
+    "trade_label": "Historic Restoration Systems",
+    "trade_label_es": "",
+    "phase_range_start": "500",
+    "phase_range_end": "599",
+    "phase_range_notes": "All phases, or scopes of work, traditionally related to Historic Restoration Systems are contained in this range. Trade Code is H by default.",
+    "phase_range_notes_es": ""
+  }
+];
+
+const RESERVED_SUFFIXES = [
+  {
+    "suffix_code": "C",
+    "suffix_meaning": "Change order",
+    "suffix_meaning_es": ""
+  },
+  {
+    "suffix_code": "Z",
+    "suffix_meaning": "Zone or area",
+    "suffix_meaning_es": ""
+  }
+];
+
+const CATEGORY_RANGES = [
+  {
+    "category_range_start": "000",
+    "category_range_end": "049",
+    "category_range_label": "Cost-Only",
+    "category_range_label_es": "",
+    "category_range_notes": "Costs not associated with construction labor, material, or equipment",
+    "category_range_notes_es": ""
+  },
+  {
+    "category_range_start": "050",
+    "category_range_end": "099",
+    "category_range_label": "Equipment & Access",
+    "category_range_label_es": "",
+    "category_range_notes": "Equipment, rentals, access systems, and related costs required to perform the work",
+    "category_range_notes_es": ""
+  },
+  {
+    "category_range_start": "100",
+    "category_range_end": "149",
+    "category_range_label": "Miscellaneous Labor",
+    "category_range_label_es": "",
+    "category_range_notes": "Labor that does not fit within a defined fabrication, installation, or support activity",
+    "category_range_notes_es": ""
+  },
+  {
+    "category_range_start": "150",
+    "category_range_end": "199",
+    "category_range_label": "Construction Support Labor",
+    "category_range_label_es": "",
+    "category_range_notes": "Labor supporting project execution but not directly performing fabrication or installation work",
+    "category_range_notes_es": ""
+  },
+  {
+    "category_range_start": "200",
+    "category_range_end": "299",
+    "category_range_label": "Fabrication Labor",
+    "category_range_label_es": "",
+    "category_range_notes": "Labor used to fabricate, assemble, or prepare materials before field installation",
+    "category_range_notes_es": ""
+  },
+  {
+    "category_range_start": "300",
+    "category_range_end": "599",
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_range_notes": "Labor directly associated with installing or performing contracted work in the field",
+    "category_range_notes_es": ""
+  },
+  {
+    "category_range_start": "600",
+    "category_range_end": "699",
+    "category_range_label": "Material",
+    "category_range_label_es": "",
+    "category_range_notes": "Materials and components incorporated into or consumed by work",
+    "category_range_notes_es": ""
+  },
+  {
+    "category_range_start": "800",
+    "category_range_end": "899",
+    "category_range_label": "Partner Subcontracts",
+    "category_range_label_es": "",
+    "category_range_notes": "Work subcontracted to designated partner or affiliated subcontractors",
+    "category_range_notes_es": ""
+  },
+  {
+    "category_range_start": "900",
+    "category_range_end": "999",
+    "category_range_label": "External Subcontracts",
+    "category_range_label_es": "",
+    "category_range_notes": "Work subcontracted to outside third-party contractors or vendors",
+    "category_range_notes_es": ""
+  },
+  {
+    "category_range_start": "1000",
+    "category_range_end": "1000",
+    "category_range_label": "INFO REQUIRED",
+    "category_range_label_es": "",
+    "category_range_notes": "Placeholder accounting code for invoices that cannot be processed",
+    "category_range_notes_es": ""
+  }
+];
+
+const PHASES = [
+  {
+    "default_trade_code": "",
+    "default_trade_label": "Shared",
+    "phase_number": "000",
+    "phase_description": "General Conditions",
+    "phase_description_es": "",
+    "phase_definition": "Operations, procedures, and indirect costs that are not directly tied to physical construction, but are essential for work",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": "R, C, G, M, H"
+  },
+  {
+    "default_trade_code": "",
+    "default_trade_label": "Shared",
+    "phase_number": "001",
+    "phase_description": "Access Systems",
+    "phase_description_es": "",
+    "phase_definition": "Physical site access systems",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": "R, C, G, M, H"
+  },
+  {
+    "default_trade_code": "",
+    "default_trade_label": "Shared",
+    "phase_number": "002",
+    "phase_description": "Service/Warranty",
+    "phase_description_es": "",
+    "phase_definition": "Work performed to address service requests, warranty obligations, repairs, adjustments, or corrective work after the origial project scope has been subsantially completed.",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": "R, C, G, M, H"
+  },
+  {
+    "default_trade_code": "R",
+    "default_trade_label": "Roofing",
+    "phase_number": "100",
+    "phase_description": "Acoustic Insulation",
+    "phase_description_es": "",
+    "phase_definition": "Material installed in walls, floors, or ceilings to reduce sound transmission between spaces",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "R",
+    "default_trade_label": "Roofing",
+    "phase_number": "101",
+    "phase_description": "Foundation Waterproofing",
+    "phase_description_es": "",
+    "phase_definition": "Protective system applied to below‑grade walls to prevent groundwater from entering the structure",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "R",
+    "default_trade_label": "Roofing",
+    "phase_number": "102",
+    "phase_description": "Plaza Deck Waterproofing",
+    "phase_description_es": "",
+    "phase_definition": "Heavy‑duty waterproofing assembly that protects occupied spaces beneath exterior decks or terraces",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "R",
+    "default_trade_label": "Roofing",
+    "phase_number": "103",
+    "phase_description": "Cold Fluid Applied",
+    "phase_description_es": "",
+    "phase_definition": "Liquid waterproofing membrane that cures into a seamless protective layer without heat",
+    "phase_definition_es": "",
+    "phase_usage": "Cold Fluid Applied could be performed by Historic Restoration, depending on project/scope",
+    "phase_usage_es": "",
+    "alt_trade_codes": "H"
+  },
+  {
+    "default_trade_code": "R",
+    "default_trade_label": "Roofing",
+    "phase_number": "104",
+    "phase_description": "EPDM",
+    "phase_description_es": "",
+    "phase_definition": "Durable synthetic rubber roofing membrane used on low‑slope roofs",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "R",
+    "default_trade_label": "Roofing",
+    "phase_number": "105",
+    "phase_description": "TPO",
+    "phase_description_es": "",
+    "phase_definition": "Thermoplastic single‑ply roofing membrane with heat‑welded seams for watertight performance",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "R",
+    "default_trade_label": "Roofing",
+    "phase_number": "106",
+    "phase_description": "PVC",
+    "phase_description_es": "",
+    "phase_definition": "Thermoplastic single‑ply roofing membrane known for chemical resistance and heat‑welded seams",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "R",
+    "default_trade_label": "Roofing",
+    "phase_number": "107",
+    "phase_description": "Hot Melt",
+    "phase_description_es": "",
+    "phase_definition": "Heated rubberized asphalt waterproofing system applied in liquid form to create a monolithic barrier",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "R",
+    "default_trade_label": "Roofing",
+    "phase_number": "108",
+    "phase_description": "SBS Modified",
+    "phase_description_es": "",
+    "phase_definition": "Flexible asphalt‑based membrane reinforced with polymers for improved durability and waterproofing",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "R",
+    "default_trade_label": "Roofing",
+    "phase_number": "109",
+    "phase_description": "Green Roof",
+    "phase_description_es": "",
+    "phase_definition": "Roof assembly that incorporates soil and vegetation over waterproofing for stormwater and thermal benefits",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "R",
+    "default_trade_label": "Roofing",
+    "phase_number": "110",
+    "phase_description": "Pavers",
+    "phase_description_es": "",
+    "phase_definition": "Precast or stone units installed to create walkable exterior surfaces.",
+    "phase_definition_es": "",
+    "phase_usage": "Pavers may be completed by Masonry, depending on project/scope",
+    "phase_usage_es": "",
+    "alt_trade_codes": "M"
+  },
+  {
+    "default_trade_code": "C",
+    "default_trade_label": "Panels",
+    "phase_number": "200",
+    "phase_description": "Air Barrier",
+    "phase_description_es": "",
+    "phase_definition": "Continuous system that prevents uncontrolled air leakage through the building envelope",
+    "phase_definition_es": "",
+    "phase_usage": "Air barrier scope may be performed by roofers or historic restoration team depending on project/scope, but is often bid as carpentry (rate differentials). Operations should take care to appropriately maage the cost code per anticipated trade",
+    "phase_usage_es": "",
+    "alt_trade_codes": "R, H"
+  },
+  {
+    "default_trade_code": "C",
+    "default_trade_label": "Panels",
+    "phase_number": "201",
+    "phase_description": "Composite Panels",
+    "phase_description_es": "",
+    "phase_definition": "Multi‑layer exterior cladding panels combining metal skins with a plastic or mineral core",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "C",
+    "default_trade_label": "Panels",
+    "phase_number": "202",
+    "phase_description": "Insulated Panels",
+    "phase_description_es": "",
+    "phase_definition": "Prefabricated wall or roof panels with built‑in insulation between metal faces",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "C",
+    "default_trade_label": "Panels",
+    "phase_number": "203",
+    "phase_description": "Integrated Window",
+    "phase_description_es": "",
+    "phase_definition": "A window system built into a panel or wall assembly",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "C",
+    "default_trade_label": "Panels",
+    "phase_number": "204",
+    "phase_description": "Single Skin Wall Panels",
+    "phase_description_es": "",
+    "phase_definition": "Thin metal cladding panels used for exterior weather protection and aesthetics",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "C",
+    "default_trade_label": "Panels",
+    "phase_number": "205",
+    "phase_description": "Zinc Panels",
+    "phase_description_es": "",
+    "phase_definition": "Architectural metal panels made from zinc that develop a protective patina over time",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "C",
+    "default_trade_label": "Panels",
+    "phase_number": "206",
+    "phase_description": "Plate Panels",
+    "phase_description_es": "",
+    "phase_definition": "Solid metal plate cladding panels fabricated from aluminum or steel",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "C",
+    "default_trade_label": "Panels",
+    "phase_number": "207",
+    "phase_description": "Column Covers",
+    "phase_description_es": "",
+    "phase_definition": "Prefabricated wraps used to enclose and finish structural columns",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "C",
+    "default_trade_label": "Panels",
+    "phase_number": "208",
+    "phase_description": "Standing Seam Roofing",
+    "phase_description_es": "",
+    "phase_definition": "Metal roofing system with raised interlocking seams that shed water effectively",
+    "phase_definition_es": "",
+    "phase_usage": "Includes aluminum, steel, and zinc; copper and slate systems should be indicated under the appropriate phases in the Historic Restoration phase range",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "C",
+    "default_trade_label": "Panels",
+    "phase_number": "209",
+    "phase_description": "Phenolic Panels",
+    "phase_description_es": "",
+    "phase_definition": "High‑pressure resin‑impregnated panels used for durable exterior cladding",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "C",
+    "default_trade_label": "Panels",
+    "phase_number": "210",
+    "phase_description": "Cartridge Plate Panels",
+    "phase_description_es": "",
+    "phase_definition": "Prefabricated plate‑metal panels assembled in cassettes for efficient facade installation",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "C",
+    "default_trade_label": "Panels",
+    "phase_number": "211",
+    "phase_description": "Terra Cotta Panels",
+    "phase_description_es": "",
+    "phase_definition": "Fired‑clay cladding used for durable, ventilated exterior facades",
+    "phase_definition_es": "",
+    "phase_usage": "Terra Cotta panels must be performed by Masons, depending on region. Operations should take care with trade indicator",
+    "phase_usage_es": "",
+    "alt_trade_codes": "M"
+  },
+  {
+    "default_trade_code": "C",
+    "default_trade_label": "Panels",
+    "phase_number": "212",
+    "phase_description": "Ceramic/Sintered Stone",
+    "phase_description_es": "",
+    "phase_definition": "Engineered stone cladding formed under high heat and pressure",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "C",
+    "default_trade_label": "Panels",
+    "phase_number": "213",
+    "phase_description": "Stone Panels",
+    "phase_description_es": "",
+    "phase_definition": "Thin natural stone slabs mounted on backup systems for architectural facades",
+    "phase_definition_es": "",
+    "phase_usage": "Stone Panels may be performed by Masons, depending on project/scope/region",
+    "phase_usage_es": "",
+    "alt_trade_codes": "M"
+  },
+  {
+    "default_trade_code": "C",
+    "default_trade_label": "Panels",
+    "phase_number": "214",
+    "phase_description": "Fiber Cement Panels/UHPC",
+    "phase_description_es": "",
+    "phase_definition": "Cement‑based cladding panels, including ultra‑high‑performance concrete options.",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "C",
+    "default_trade_label": "Panels",
+    "phase_number": "215",
+    "phase_description": "Screenwall Panels",
+    "phase_description_es": "",
+    "phase_definition": "Non‑weather‑tight facade panels used for aesthetic screening or ventilation",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "C",
+    "default_trade_label": "Panels",
+    "phase_number": "216",
+    "phase_description": "Louvers",
+    "phase_description_es": "",
+    "phase_definition": "Slatted assemblies that allow airflow while blocking rain, debris, or sightlines",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "C",
+    "default_trade_label": "Panels",
+    "phase_number": "217",
+    "phase_description": "Subframing/Insulation",
+    "phase_description_es": "",
+    "phase_definition": "Support structure and thermal layers installed behind exterior cladding",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "C",
+    "default_trade_label": "Panels",
+    "phase_number": "218",
+    "phase_description": "Panelized Wall Assemblies",
+    "phase_description_es": "",
+    "phase_definition": "Factory‑built wall sections delivered to site for rapid installation",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "C",
+    "default_trade_label": "Panels",
+    "phase_number": "219",
+    "phase_description": "Structural Framing",
+    "phase_description_es": "",
+    "phase_definition": "Primary steel skeleton that supports the building’s loads",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "C",
+    "default_trade_label": "Panels",
+    "phase_number": "220",
+    "phase_description": "Expansion Joints",
+    "phase_description_es": "",
+    "phase_definition": "Flexible components that absorb building movement from temperature, seismic, or structural shifts",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "C",
+    "default_trade_label": "Panels",
+    "phase_number": "221",
+    "phase_description": "Firesafing",
+    "phase_description_es": "",
+    "phase_definition": "Fire‑resistant material used to seal gaps between floors, walls, and facade systems",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "C",
+    "default_trade_label": "Panels",
+    "phase_number": "222",
+    "phase_description": "Woodblocking",
+    "phase_description_es": "",
+    "phase_definition": "Installed wood backing used to support attachment of finishes or equipment.",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "C",
+    "default_trade_label": "Panels",
+    "phase_number": "223",
+    "phase_description": "Canopies",
+    "phase_description_es": "",
+    "phase_definition": "Overhead structures projecting from a building to provide shelter or architectural emphasis",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "C",
+    "default_trade_label": "Panels",
+    "phase_number": "224",
+    "phase_description": "Sheet Metal",
+    "phase_description_es": "",
+    "phase_definition": "Fabricated metal components used for flashing, cladding, and weatherproofing details",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "G",
+    "default_trade_label": "Metal & Glass",
+    "phase_number": "300",
+    "phase_description": "Storefronts",
+    "phase_description_es": "",
+    "phase_definition": "Ground‑level aluminum‑framed glass systems used for entrances and retail facades",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "G",
+    "default_trade_label": "Metal & Glass",
+    "phase_number": "301",
+    "phase_description": "Window Walls",
+    "phase_description_es": "",
+    "phase_definition": "Floor‑to‑ceiling glazed systems installed between slabs to form exterior walls",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "G",
+    "default_trade_label": "Metal & Glass",
+    "phase_number": "302",
+    "phase_description": "Curtain Walls",
+    "phase_description_es": "",
+    "phase_definition": "Non‑load‑bearing exterior glass and metal systems hung from the building structure",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "G",
+    "default_trade_label": "Metal & Glass",
+    "phase_number": "303",
+    "phase_description": "Preglazed Windows",
+    "phase_description_es": "",
+    "phase_definition": "Window units with glazing installed before delivery",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "G",
+    "default_trade_label": "Metal & Glass",
+    "phase_number": "304",
+    "phase_description": "Windows",
+    "phase_description_es": "",
+    "phase_definition": "Framed openings with glass that provide light, ventilation, and views",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "G",
+    "default_trade_label": "Metal & Glass",
+    "phase_number": "305",
+    "phase_description": "Skylights",
+    "phase_description_es": "",
+    "phase_definition": "Roof‑mounted glazed units that bring natural light into interior spaces",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "G",
+    "default_trade_label": "Metal & Glass",
+    "phase_number": "306",
+    "phase_description": "Interior",
+    "phase_description_es": "",
+    "phase_definition": "Work related to interior partitions, finishes, and building systems",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "G",
+    "default_trade_label": "Metal & Glass",
+    "phase_number": "307",
+    "phase_description": "Doors",
+    "phase_description_es": "",
+    "phase_definition": "Hinged, sliding, or pivoting assemblies that provide access and separation between spaces",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "G",
+    "default_trade_label": "Metal & Glass",
+    "phase_number": "308",
+    "phase_description": "Glass Handrail & Wind Screen",
+    "phase_description_es": "",
+    "phase_definition": "Glazed guardrail systems used for safety and wind protection on balconies or roofs",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "G",
+    "default_trade_label": "Metal & Glass",
+    "phase_number": "309",
+    "phase_description": "Translucent Panel System",
+    "phase_description_es": "",
+    "phase_definition": "Light‑transmitting wall or roof panels that diffuse daylight while providing insulation",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "G",
+    "default_trade_label": "Metal & Glass",
+    "phase_number": "310",
+    "phase_description": "Unitized Curtain Walls",
+    "phase_description_es": "",
+    "phase_definition": "Large factory‑built curtain wall panels installed as complete units on the building",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "G",
+    "default_trade_label": "Metal & Glass",
+    "phase_number": "311",
+    "phase_description": "Unitized Window Walls",
+    "phase_description_es": "",
+    "phase_definition": "Prefabricated window wall sections delivered as complete modules for rapid installation",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "G",
+    "default_trade_label": "Metal & Glass",
+    "phase_number": "312",
+    "phase_description": "Sunshades/Aluminum Fins",
+    "phase_description_es": "",
+    "phase_definition": "Exterior shading devices that reduce solar heat gain and glare",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "M",
+    "default_trade_label": "Masonry",
+    "phase_number": "400",
+    "phase_description": "CMU",
+    "phase_description_es": "",
+    "phase_definition": "Standard precast rectangular building block",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "M",
+    "default_trade_label": "Masonry",
+    "phase_number": "401",
+    "phase_description": "Brick",
+    "phase_description_es": "",
+    "phase_definition": "Standard full size brick",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "M",
+    "default_trade_label": "Masonry",
+    "phase_number": "402",
+    "phase_description": "Brick Veneer",
+    "phase_description_es": "",
+    "phase_definition": "Thin face brick",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "M",
+    "default_trade_label": "Masonry",
+    "phase_number": "403",
+    "phase_description": "Stone",
+    "phase_description_es": "",
+    "phase_definition": "Thin stone veneer",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "M",
+    "default_trade_label": "Masonry",
+    "phase_number": "404",
+    "phase_description": "Envelope Components",
+    "phase_description_es": "",
+    "phase_definition": "Backup framing and insulation",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "H",
+    "default_trade_label": "Historic Restoration",
+    "phase_number": "500",
+    "phase_description": "Copper Restoration",
+    "phase_description_es": "",
+    "phase_definition": "Recreation of existing copper",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "H",
+    "default_trade_label": "Historic Restoration",
+    "phase_number": "501",
+    "phase_description": "Slate",
+    "phase_description_es": "",
+    "phase_definition": "Slate shingles",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "H",
+    "default_trade_label": "Historic Restoration",
+    "phase_number": "502",
+    "phase_description": "Sheet Metal Restoration",
+    "phase_description_es": "",
+    "phase_definition": "Recreation of existing non-copper",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "H",
+    "default_trade_label": "Historic Restoration",
+    "phase_number": "503",
+    "phase_description": "Roof Restoration",
+    "phase_description_es": "",
+    "phase_definition": "Roof restoration/installation of misc. materials; catch-all for anything but copper and slate",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  },
+  {
+    "default_trade_code": "H",
+    "default_trade_label": "Historic Restoration",
+    "phase_number": "504",
+    "phase_description": "Envelope Restoration",
+    "phase_description_es": "",
+    "phase_definition": "Vertical restoration/installation of misc. materials; cladding, non-roof catch-all",
+    "phase_definition_es": "",
+    "phase_usage": "",
+    "phase_usage_es": "",
+    "alt_trade_codes": ""
+  }
+];
+
+const CATEGORIES = [
+  {
+    "category_range_label": "Cost-Only",
+    "category_range_label_es": "",
+    "category_number": "000",
+    "category_description": "Shop Drawings",
+    "category_description_es": "",
+    "category_definition": "Fees paid to third-party firms for preparation of shop or fabrication drawings (e.g., Vectre).",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "000",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Cost-Only",
+    "category_range_label_es": "",
+    "category_number": "001",
+    "category_description": "Engineering",
+    "category_description_es": "",
+    "category_definition": "Fees paid to third-party engineering firms for structural or design engineering services (e.g., FDR).",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "000",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Cost-Only",
+    "category_range_label_es": "",
+    "category_number": "002",
+    "category_description": "Permits",
+    "category_description_es": "",
+    "category_definition": "Fees paid to obtain building, work, or trade permits required from a regulatory authority.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "000",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Cost-Only",
+    "category_range_label_es": "",
+    "category_number": "003",
+    "category_description": "Travel",
+    "category_description_es": "",
+    "category_definition": "Employee travel costs to/from the jobsite, including daily per diems.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "000",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Cost-Only",
+    "category_range_label_es": "",
+    "category_number": "004",
+    "category_description": "Parking",
+    "category_description_es": "",
+    "category_definition": "Cost of parking for personnel or vehicles at or near the jobsite.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "000",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Cost-Only",
+    "category_range_label_es": "",
+    "category_number": "005",
+    "category_description": "Bond",
+    "category_description_es": "",
+    "category_definition": "Cost of performance and payment bonds required by the contract.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "000",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Cost-Only",
+    "category_range_label_es": "",
+    "category_number": "006",
+    "category_description": "Postage",
+    "category_description_es": "",
+    "category_definition": "Cost of postage, shipping of documents, and courier services.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "000",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Cost-Only",
+    "category_range_label_es": "",
+    "category_number": "007",
+    "category_description": "Tolls",
+    "category_description_es": "",
+    "category_definition": "Cost of highway, bridge, or tunnel tolls incurred traveling to/from the jobsite.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "000",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Cost-Only",
+    "category_range_label_es": "",
+    "category_number": "008",
+    "category_description": "Supplies",
+    "category_description_es": "",
+    "category_definition": "Cost of general supplies not used for installation.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "000",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Cost-Only",
+    "category_range_label_es": "",
+    "category_number": "009",
+    "category_description": "Insurance",
+    "category_description_es": "",
+    "category_definition": "Cost of special insurance coverage required for a specific project, if applicable.",
+    "category_definition_es": "",
+    "category_usage": "Only applicable where special coverage is required",
+    "category_usage_es": "",
+    "applies_to_default": "000",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Cost-Only",
+    "category_range_label_es": "",
+    "category_number": "010",
+    "category_description": "Bank Fees",
+    "category_description_es": "",
+    "category_definition": "Cost of Textura and accounting-related transaction fees.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "000",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Cost-Only",
+    "category_range_label_es": "",
+    "category_number": "011",
+    "category_description": "Allowance",
+    "category_description_es": "",
+    "category_definition": "Contractually defined allowance amount held for scope not fully defined at contract execution.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "000",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Cost-Only",
+    "category_range_label_es": "",
+    "category_number": "012",
+    "category_description": "Warranty",
+    "category_description_es": "",
+    "category_definition": "Warranty fee applied to the matching phase(s) of work it covers.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "000",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Cost-Only",
+    "category_range_label_es": "",
+    "category_number": "013",
+    "category_description": "Legal",
+    "category_description_es": "",
+    "category_definition": "Legal fee cost.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "000",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Cost-Only",
+    "category_range_label_es": "",
+    "category_number": "014",
+    "category_description": "Third party Inspections",
+    "category_description_es": "",
+    "category_definition": "Fee for third-party inspection or lab testing services (e.g., Trimco, manufacturer inspections, ABAA)",
+    "category_definition_es": "",
+    "category_usage": "Excludes labor or equipment costs",
+    "category_usage_es": "",
+    "applies_to_default": "000",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Access & Equipment",
+    "category_range_label_es": "",
+    "category_number": "050",
+    "category_description": "Cranes",
+    "category_description_es": "",
+    "category_definition": "Cost to rent/operate cranes used to hoist material, equipment, or personnel.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "001",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Access & Equipment",
+    "category_range_label_es": "",
+    "category_number": "051",
+    "category_description": "High Reach",
+    "category_description_es": "",
+    "category_definition": "Cost of high-reach/boom lift equipment used for elevated access.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "001",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Access & Equipment",
+    "category_range_label_es": "",
+    "category_number": "052",
+    "category_description": "Equipment",
+    "category_description_es": "",
+    "category_definition": "Cost of specialty equipment the company does not currently own or have a defined code for; general equipment not typical for standard installation work.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "001",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Access & Equipment",
+    "category_range_label_es": "",
+    "category_number": "053",
+    "category_description": "Forklift",
+    "category_description_es": "",
+    "category_definition": "Cost to rent/operate forklifts for material handling on site.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "001",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Access & Equipment",
+    "category_range_label_es": "",
+    "category_number": "054",
+    "category_description": "Traditional Scaffold",
+    "category_description_es": "",
+    "category_definition": "Cost to erect, rent, and dismantle traditional (frame/tube) scaffold.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "001",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Access & Equipment",
+    "category_range_label_es": "",
+    "category_number": "055",
+    "category_description": "Scaffold Swings",
+    "category_description_es": "",
+    "category_definition": "Cost of suspended scaffold (swing stage) equipment for exterior elevated access.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "001",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Access & Equipment",
+    "category_range_label_es": "",
+    "category_number": "056",
+    "category_description": "Mast Climber",
+    "category_description_es": "",
+    "category_definition": "Cost to rent/operate mast climbing work platforms for vertical access.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "001",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Access & Equipment",
+    "category_range_label_es": "",
+    "category_number": "057",
+    "category_description": "Consumables",
+    "category_description_es": "",
+    "category_definition": "Cost of items used directly in installation, such as small tools and drill bits; absorbs what was formerly \"General Conditions - Small Tools.\"",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "001",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Access & Equipment",
+    "category_range_label_es": "",
+    "category_number": "058",
+    "category_description": "Internal Freight",
+    "category_description_es": "",
+    "category_definition": "Cost to ship/transport material or equipment between company facilities",
+    "category_definition_es": "",
+    "category_usage": "Absorbs the former \"Trucking (Shop Haul)\" code for shipping to internal facilities",
+    "category_usage_es": "",
+    "applies_to_default": "001",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Access & Equipment",
+    "category_range_label_es": "",
+    "category_number": "059",
+    "category_description": "External Freight",
+    "category_description_es": "",
+    "category_definition": "Cost of any external trucking/freight system delivering material to the jobsite",
+    "category_definition_es": "",
+    "category_usage": "Absorbs the former \"Trucking (Shop Haul)\" code for shipping to jobsite",
+    "category_usage_es": "",
+    "applies_to_default": "001",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Access & Equipment",
+    "category_range_label_es": "",
+    "category_number": "060",
+    "category_description": "Safety Equipment",
+    "category_description_es": "",
+    "category_definition": "Cost of safety equipment installed to protect the company's own work scope, such as safety fencing.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "001",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Access & Equipment",
+    "category_range_label_es": "",
+    "category_number": "061",
+    "category_description": "Dumpsters",
+    "category_description_es": "",
+    "category_definition": "Cost of dumpster rental and debris hauling/disposal.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "001",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Access & Equipment",
+    "category_range_label_es": "",
+    "category_number": "062",
+    "category_description": "Site Facilities",
+    "category_description_es": "",
+    "category_definition": "Cost of site logistics rentals/items: porta-potty, sea box (storage container), job trailer, security fencing, and similar.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "001",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Misc. Labor",
+    "category_range_label_es": "",
+    "category_number": "100",
+    "category_description": "Relief",
+    "category_description_es": "",
+    "category_definition": "Labor cost for workers providing relief/backup coverage on a crew.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "000",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Misc. Labor",
+    "category_range_label_es": "",
+    "category_number": "101",
+    "category_description": "Punch List",
+    "category_description_es": "",
+    "category_definition": "Labor cost for finishing touches, rework, or quality-control fixes that don't fall into a budgeted category (install, repairs, etc.)",
+    "category_definition_es": "",
+    "category_usage": "Excludes leak repair and patching as budgeted cost category",
+    "category_usage_es": "",
+    "applies_to_default": "000",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Misc. Labor",
+    "category_range_label_es": "",
+    "category_number": "102",
+    "category_description": "Leaks",
+    "category_description_es": "",
+    "category_definition": "Labor cost to investigate and repair reported water infiltration/leaks.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "000",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Misc. Labor",
+    "category_range_label_es": "",
+    "category_number": "103",
+    "category_description": "Supervision",
+    "category_description_es": "",
+    "category_definition": "Labor cost for non-working foreman duties, pre-construction meetings, and safety supervision.",
+    "category_definition_es": "",
+    "category_usage": "Excludes firewatch",
+    "category_usage_es": "",
+    "applies_to_default": "000",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Misc. Labor",
+    "category_range_label_es": "",
+    "category_number": "104",
+    "category_description": "Weather",
+    "category_description_es": "",
+    "category_definition": "Union-specific labor charge for weather-related delay hours.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "000",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Misc. Labor",
+    "category_range_label_es": "",
+    "category_number": "105",
+    "category_description": "Training",
+    "category_description_es": "",
+    "category_definition": "Labor cost for manufacturer, equipment, and OSHA training, and new-vendor onboarding training.",
+    "category_definition_es": "",
+    "category_usage": "Excludes internal EDA culture/in-house training",
+    "category_usage_es": "",
+    "applies_to_default": "000",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Misc. Labor",
+    "category_range_label_es": "",
+    "category_number": "106",
+    "category_description": "Orientation",
+    "category_description_es": "",
+    "category_definition": "Labor cost for customer- or site-specific orientation.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "000",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Misc. Labor",
+    "category_range_label_es": "",
+    "category_number": "107",
+    "category_description": "Holiday",
+    "category_description_es": "",
+    "category_definition": "Union-specific holiday labor charge.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "000",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Misc. Labor",
+    "category_range_label_es": "",
+    "category_number": "108",
+    "category_description": "Shop ",
+    "category_description_es": "",
+    "category_definition": "Labor cost for shop-based work.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "000",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Misc. Labor",
+    "category_range_label_es": "",
+    "category_number": "109",
+    "category_description": "Mock Up",
+    "category_description_es": "",
+    "category_definition": "Labor cost to build a mock-up/sample assembly for approval prior to full production.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "000",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Misc. Labor",
+    "category_range_label_es": "",
+    "category_number": "110",
+    "category_description": "QAQC",
+    "category_description_es": "",
+    "category_definition": "Labor cost for Quality Assurance & Quality Control inspections.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "000",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Misc. Labor",
+    "category_range_label_es": "",
+    "category_number": "111",
+    "category_description": "Testing",
+    "category_description_es": "",
+    "category_definition": "Labor cost for running inspection tests, e.g. water and/or roof testing",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "000",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Construction Support Labor",
+    "category_range_label_es": "",
+    "category_number": "150",
+    "category_description": "Trash/Cleanup",
+    "category_description_es": "",
+    "category_definition": "Labor cost for site cleanup: wrapper/packaging disposal and general trash cleanup tied to site conditions.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "000, 100-599",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Construction Support Labor",
+    "category_range_label_es": "",
+    "category_number": "151",
+    "category_description": "Mobilize On Site",
+    "category_description_es": "",
+    "category_definition": "Labor cost to arrive on site and establish site conditions; setting up gang boxes, equipment, and trailers.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "000, 002",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Construction Support Labor",
+    "category_range_label_es": "",
+    "category_number": "152",
+    "category_description": "Inspection",
+    "category_description_es": "",
+    "category_definition": "Labor cost to support internal inspections.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "000, 002",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Construction Support Labor",
+    "category_range_label_es": "",
+    "category_number": "153",
+    "category_description": "Install Temporary Safety",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install temporary safety measures.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "000, R",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Construction Support Labor",
+    "category_range_label_es": "",
+    "category_number": "154",
+    "category_description": "Ticket Work",
+    "category_description_es": "",
+    "category_definition": "Labor cost for extra work billed on a ticket basis",
+    "category_definition_es": "",
+    "category_usage": "Requires an associated cost-control/GC charge code and approval",
+    "category_usage_es": "",
+    "applies_to_default": "000",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Construction Support Labor",
+    "category_range_label_es": "",
+    "category_number": "155",
+    "category_description": "Demo",
+    "category_description_es": "",
+    "category_definition": "Labor cost for demolition only; no installation; covers any tear-down work.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "000, 100-599",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Construction Support Labor",
+    "category_range_label_es": "",
+    "category_number": "156",
+    "category_description": "Field Measure",
+    "category_description_es": "",
+    "category_definition": "Labor cost covering field layout, field verification, and roof core reports",
+    "category_definition_es": "",
+    "category_usage": "All-encompassing field-measurement code",
+    "category_usage_es": "",
+    "applies_to_default": "000, 100-599",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Construction Support Labor",
+    "category_range_label_es": "",
+    "category_number": "157",
+    "category_description": "Washdown",
+    "category_description_es": "",
+    "category_definition": "Labor cost to pressure wash or clean installed surfaces.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "M",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Construction Support Labor",
+    "category_range_label_es": "",
+    "category_number": "158",
+    "category_description": "Patch",
+    "category_description_es": "",
+    "category_definition": "Labor cost to patch/repair adjacent surfaces disturbed by the work, incl. finished work",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "000, 002",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Construction Support Labor",
+    "category_range_label_es": "",
+    "category_number": "159",
+    "category_description": "Scan",
+    "category_description_es": "",
+    "category_definition": "Labor cost for EDA support during scanning activities (vector scanning, infrared scanning, surveyor supervision).",
+    "category_definition_es": "",
+    "category_usage": "Distinct from General Supervision (103)",
+    "category_usage_es": "",
+    "applies_to_default": "000",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Construction Support Labor",
+    "category_range_label_es": "",
+    "category_number": "160",
+    "category_description": "Load Job",
+    "category_description_es": "",
+    "category_definition": "Labor cost associated with bulk material deliveries.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "100-599",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Construction Support Labor",
+    "category_range_label_es": "",
+    "category_number": "161",
+    "category_description": "Material Handling",
+    "category_description_es": "",
+    "category_definition": "Labor cost for additional manpower moving material after delivery.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "100-599",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Construction Support Labor",
+    "category_range_label_es": "",
+    "category_number": "162",
+    "category_description": "Operator Wages",
+    "category_description_es": "",
+    "category_definition": "Wages for union equipment operators",
+    "category_definition_es": "",
+    "category_usage": "Excludes general laborer wages",
+    "category_usage_es": "",
+    "applies_to_default": "M",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Construction Support Labor",
+    "category_range_label_es": "",
+    "category_number": "163",
+    "category_description": "Transport Swings",
+    "category_description_es": "",
+    "category_definition": "Labor cost to transport and reposition swing stage equipment.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "001",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Construction Support Labor",
+    "category_range_label_es": "",
+    "category_number": "164",
+    "category_description": "Dismantle System Scaffold",
+    "category_description_es": "",
+    "category_definition": "Labor cost to dismantle system (frame) scaffold.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "001",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Construction Support Labor",
+    "category_range_label_es": "",
+    "category_number": "165",
+    "category_description": "Demobilize On Site",
+    "category_description_es": "",
+    "category_definition": "Labor cost to close out the site; taking down gang boxes, equipment, and trailers.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "000, 002",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Construction Support Labor",
+    "category_range_label_es": "",
+    "category_number": "166",
+    "category_description": "General Laborer Wages",
+    "category_description_es": "",
+    "category_definition": "Wages for non-productivity-tracked support laborers (laborer union)",
+    "category_definition_es": "",
+    "category_usage": "Currently used primarily by masonry crews",
+    "category_usage_es": "",
+    "applies_to_default": "M",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Construction Support Labor",
+    "category_range_label_es": "",
+    "category_number": "167",
+    "category_description": "Firewatch",
+    "category_description_es": "",
+    "category_definition": "Labor cost for non-working or extended-hours coverage on site for fire safety.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "000, 104, 108",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Fabrication Labor",
+    "category_range_label_es": "",
+    "category_number": "200",
+    "category_description": "Fabricate Sheet Metal",
+    "category_description_es": "",
+    "category_definition": "Labor cost to fabricate sheet metal, transition or non-transition, in the shop.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "C, G",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Fabrication Labor",
+    "category_range_label_es": "",
+    "category_number": "201",
+    "category_description": "Fabricate Panels",
+    "category_description_es": "",
+    "category_definition": "Labor cost to fabricate wall/soffit panel assemblies in the shop.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "C, G",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Fabrication Labor",
+    "category_range_label_es": "",
+    "category_number": "202",
+    "category_description": "Fabricate Glass System",
+    "category_description_es": "",
+    "category_definition": "Labor cost to fabricate glazing/curtain wall system components in the shop.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "G",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Fabrication Labor",
+    "category_range_label_es": "",
+    "category_number": "203",
+    "category_description": "Fabricate Restoration System",
+    "category_description_es": "",
+    "category_definition": "Labor cost to fabricate systems for historic restoration",
+    "category_definition_es": "",
+    "category_usage": "If completed within scope of service project, use in phase 002 - Service/Warranty.",
+    "category_usage_es": "",
+    "applies_to_default": "H",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Fabrication Labor",
+    "category_range_label_es": "",
+    "category_number": "204",
+    "category_description": "Fabricate Mold",
+    "category_description_es": "",
+    "category_definition": "Labor cost to fabricate systems for historic restoration replication, stamping, etc.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "H",
+    "applies_to_optional": "R, C"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "300",
+    "category_description": "Install Solder",
+    "category_description_es": "",
+    "category_definition": "Labor cost to solder on-site systems",
+    "category_definition_es": "",
+    "category_usage": "Typical for historic restoration  and includes solder as part of specific system, ex. Flat-seam roofing",
+    "category_usage_es": "",
+    "applies_to_default": "H",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "301",
+    "category_description": "Install Permanent Safety",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install permanent fall-protection/life-safety systems.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "NONE",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "302",
+    "category_description": "Install Field Insulation",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install acoustic/field insulation.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "100",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "303",
+    "category_description": "Install Wall Insulation",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install acoustic wall insulation.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "100",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "304",
+    "category_description": "Install Underslab Vapor Barrier",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install underslab vapor barrier as part of foundation waterproofing.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "101",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "305",
+    "category_description": "Install Underslab Waterproofing",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install underslab waterproofing.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "101",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "306",
+    "category_description": "Install Grade Beams",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install grade beams as part of the foundation waterproofing scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "101",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "307",
+    "category_description": "Install Footings",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install foundation footings.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "101",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "308",
+    "category_description": "Install Footings to Wall Tie In",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install the tie-in detail between footings and foundation walls.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "101",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "309",
+    "category_description": "Install Sheet Foundation Walls",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install sheet-applied waterproofing on foundation walls.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "101",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "310",
+    "category_description": "Install Blind Side Walls",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install waterproofing on blind-side foundation walls.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "101",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "311",
+    "category_description": "Install Liquid Foundation Walls",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install liquid-applied waterproofing on foundation walls.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "101",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "312",
+    "category_description": "Install Cassions",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install caisson foundation elements.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "101",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "313",
+    "category_description": "Install Betonite Walls",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install bentonite waterproofing on foundation walls.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "101",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "314",
+    "category_description": "Install Drainage Board",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install drainage board over foundation waterproofing.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "101",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "315",
+    "category_description": "Install Dampproofing",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install dampproofing coating on below-grade walls.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "101",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "316",
+    "category_description": "Install Tie-Back Flashings",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install tie-back anchors ",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "101",
+    "applies_to_optional": "H"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "317",
+    "category_description": "Install Membrane Flashing Penetrations",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install flashing at penetrations ",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "200, R, H",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "318",
+    "category_description": "Install Liquid Field Membrane",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install liquid-applied field membrane, plaza deck waterproofing scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "102",
+    "applies_to_optional": "R"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "319",
+    "category_description": "Install Flashing Walls",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install wall flashing, roofing scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "R",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "320",
+    "category_description": "Install Root Barrier",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install root barrier",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "102,109",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "321",
+    "category_description": "Install Field Membrane",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install field membrane, cold fluid-applied roofing scope, ice & water shield, felt",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "103",
+    "applies_to_optional": "R, H"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "322",
+    "category_description": "Install Flashing Curbs",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install flashing at roof curbs.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "103-109",
+    "applies_to_optional": "H"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "323",
+    "category_description": "Install Temporary Roofing",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install temporary roofing; includes roof vapor barrier and substrate/primer/base sheet installed out of sequence for temporary weathertightness.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "103-108, H",
+    "applies_to_optional": "R"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "324",
+    "category_description": "Install Roofing System",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install the roofing system up to the watertight layer.",
+    "category_definition_es": "",
+    "category_usage": "Absorbs general roofing system codes removed in prior cost code versions",
+    "category_usage_es": "",
+    "applies_to_default": "103-108, H",
+    "applies_to_optional": "R"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "325",
+    "category_description": "Install Standing Seam Panels",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install standing seam system panels",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "208, H",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "326",
+    "category_description": "Install Mechanical Seams",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install and secure mechanically joined seams to connect adjacent metals or components",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "208, H",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "327",
+    "category_description": "Install Standing Seam Battens",
+    "category_description_es": "",
+    "category_definition": "Install and secure battens used to form and cover raised seams between adjacent standing-seam panels",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "208, H",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "328",
+    "category_description": "Install Flat Lock Seams",
+    "category_description_es": "",
+    "category_definition": "Install and secure interlocking flat-lock sheet metal seamstojoin adjacent metal panels",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "208, H",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "329",
+    "category_description": "Install Walk Pads",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install roof walk pads.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "103-108",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "330",
+    "category_description": "Install Roof Hatch/Skylight",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install roof hatches/skylights.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "103-108",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "331",
+    "category_description": "Install Cap Sheet",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install the cap sheet layer, SBS modified roofing scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "108, 102",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "332",
+    "category_description": "Install Liquid Cap",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install a liquid-applied cap/topcoat.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "109",
+    "applies_to_optional": "103-108"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "333",
+    "category_description": "Install Trays",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install drainage/growth trays, green roof scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "109",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "334",
+    "category_description": "Install Fabric/Drainage/RB/Insulation",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install fabric, drainage, root barrier, and insulation layers, green roof scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "109",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "335",
+    "category_description": "Install Soil",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install growing medium (soil), green roof scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "109",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "336",
+    "category_description": "Install Mats",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install mats, green roof scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "109",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "337",
+    "category_description": "Install Plugs",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install plant plugs, green roof scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "109",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "338",
+    "category_description": "Install Shrubs",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install shrubs, green roof scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "109",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "339",
+    "category_description": "Install Loose Laid Pavers",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install loose-laid pavers.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "110",
+    "applies_to_optional": "103-109"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "340",
+    "category_description": "Install Pedestal Pavers",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install pavers on adjustable pedestals.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "110",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "341",
+    "category_description": "Install Sheet Membrane",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install sheet membrane, acoustic insulation/air barrier scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "101, 200",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "342",
+    "category_description": "Install Fluid Applied",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install fluid-applied air barrier coatings.",
+    "category_definition_es": "",
+    "category_usage": "Includes both spray and roll applied",
+    "category_usage_es": "",
+    "applies_to_default": "101, 200",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "343",
+    "category_description": "Install Detail Tape",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install detail (seam/joint) tape, air barrier scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "200",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "344",
+    "category_description": "Install Metal Flashing Penetrations",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install penetration detailing with carpentry scope.",
+    "category_definition_es": "",
+    "category_usage": "Use for carpenters (openings, escutcheons, etc.)",
+    "category_usage_es": "",
+    "applies_to_default": "C",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "345",
+    "category_description": "Install Panels",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install wall/soffit panels, panels scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "C, M211, M213",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "346",
+    "category_description": "Install Exterior Trim",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install exterior trim; includes support flashing and cleats.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "208,224,500,501,502",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "347",
+    "category_description": "Install Valleys & Hips",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install and secure components at roof valleys and hips to provide proper transitions, drainage, and weather protection",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "208,224,500,501,502",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "348",
+    "category_description": "Install Ridges",
+    "category_description_es": "",
+    "category_definition": "Install and secure ridge components along roof peaks, includes ridge vent",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "C",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "349",
+    "category_description": "Install System Rails",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install system support rails, panels scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "216",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "350",
+    "category_description": "Install Louvers",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install louvers.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "216",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "351",
+    "category_description": "Install Clips",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install attachment clips, louvers scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "216",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "352",
+    "category_description": "Install Sill Pans",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install sill pan flashing, louvers scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "216",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "353",
+    "category_description": "Install Vertical Members",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install vertical framing members, louvers scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "216",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "354",
+    "category_description": "Install Blades",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install louver blades.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "216",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "355",
+    "category_description": "Install Blank Offs",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install blank-off panels, subframing/insulation scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "217",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "356",
+    "category_description": "Install Z Girt",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install Z-girt subframing, including thermally broken Z-girt.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "C",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "357",
+    "category_description": "Install Hat Channel",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install hat channel subframing.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "C",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "358",
+    "category_description": "Install Rails",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install support rails, subframing/insulation scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "C",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "359",
+    "category_description": "Install Stud Framing",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install cold-formed metal stud framing.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "360",
+    "category_description": "Install Exterior Sheathing/Drywall",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install exterior sheathing/drywall, structural stud framing scope, plywood.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "219",
+    "applies_to_optional": "C, R"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "361",
+    "category_description": "Install Drywall Tape & Finish",
+    "category_description_es": "",
+    "category_definition": "Labor cost to tape and finish drywall joints",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "219",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "362",
+    "category_description": "Install Interior Trim",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install interior trim",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "218",
+    "applies_to_optional": "G"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "363",
+    "category_description": "Install Slab Edge Angle",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install slab edge angle, panelized wall assemblies scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "218, 219",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "364",
+    "category_description": "Install Panelized Sections",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install panelized wall sections.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "218",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "365",
+    "category_description": "Install Steel",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install structural steel (I-beam, tube steel, channel, etc.).",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "219",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "366",
+    "category_description": "Install Welding",
+    "category_description_es": "",
+    "category_definition": "Labor cost to perform structural steel welding.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "219",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "367",
+    "category_description": "Install Expansion Joints",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install expansion joints",
+    "category_definition_es": "",
+    "category_usage": "Does not include gutter expansion joints",
+    "category_usage_es": "",
+    "applies_to_default": "220, 103-108",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "368",
+    "category_description": "Install Batt Firesafing",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install batt-type fire safing insulation.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "221",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "369",
+    "category_description": "Install Spray Firesafing",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install spray-applied fire safing insulation.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "221",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "370",
+    "category_description": "Install Woodblocking",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install wood blocking.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "222, 103-108",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "371",
+    "category_description": "Install Canopy Sections",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install prefabricated canopy sections.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "223",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "372",
+    "category_description": "Install Canopy Knockdown",
+    "category_description_es": "",
+    "category_definition": "Labor cost to disassemble/remove existing canopy sections.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "223",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "373",
+    "category_description": "Install Swings",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install swing stage rigging, scaffold scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "001",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "374",
+    "category_description": "Install System Scaffold",
+    "category_description_es": "",
+    "category_definition": "Labor cost to erect system (frame) scaffold.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "001",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "375",
+    "category_description": "Insall Mast Climber",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install mast climber equipment, scaffold scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "001",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "376",
+    "category_description": "Install Coping",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install parapet coping, sheet metal trim scope.",
+    "category_definition_es": "",
+    "category_usage": "Include corner and miter labor",
+    "category_usage_es": "",
+    "applies_to_default": "224",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "377",
+    "category_description": "Install Edge Metal",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install roof edge metal.",
+    "category_definition_es": "",
+    "category_usage": "Include corner and miter labor",
+    "category_usage_es": "",
+    "applies_to_default": "224",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "378",
+    "category_description": "Install Scuppers",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install roof drain scuppers.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "224",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "379",
+    "category_description": "Install Collectors",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install collector boxes, sheet metal trim scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "224",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "380",
+    "category_description": "Install Built-In Gutters",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install built-in gutters.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "224",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "381",
+    "category_description": "Install Gutters",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install gutters, includes hanging gutters and includes the brackets, mounting, expansion joints (parts of system).",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "224",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "382",
+    "category_description": "Install Downspouts",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install downspouts.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "224",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "383",
+    "category_description": "Install Cleats",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install cleats securing sheet metal trim.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "224",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "384",
+    "category_description": "Install Through Wall Flashing",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install through-wall flashing.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "500, 502, 504, 224",
+    "applies_to_optional": "200"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "385",
+    "category_description": "Install Ornamental Units",
+    "category_description_es": "",
+    "category_definition": "Labor cost to insall ornamental units",
+    "category_definition_es": "",
+    "category_usage": "Measured in ea.",
+    "category_usage_es": "",
+    "applies_to_default": "H",
+    "applies_to_optional": "C"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "386",
+    "category_description": "Install Caulk",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install sealant/caulk joints, panel scopes.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "H, C",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "387",
+    "category_description": "Install Step Flashing",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install and secure step flashing at roof-to-wall intersections to direct water away from joints and prevent water intrusion",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "H",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "388",
+    "category_description": "Install Counter Flashing",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install and secure counter flashing to provide water-resistant termination and direct water away from the assembly",
+    "category_definition_es": "",
+    "category_usage": "When performed by roofer, includes caulk as part of system",
+    "category_usage_es": "",
+    "applies_to_default": "G, 224",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "389",
+    "category_description": "Install Glass Framing",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install framing, metal & glass scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "G",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "390",
+    "category_description": "Install Break Metal Trim",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install break metal trim, metal & glass scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "G",
+    "applies_to_optional": "C"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "391",
+    "category_description": "Install Glass",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install glass, metal & glass scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "G",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "392",
+    "category_description": "Install Slab Edge Covers",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install slab edge covers, window wall scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "300-304",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "393",
+    "category_description": "Install Receptors",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install receptors, preglazed window scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "303",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "394",
+    "category_description": "Install Channels",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install channel trim, interior AG&M scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "306",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "395",
+    "category_description": "Install Mirror",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install mirrors, interior AG&M scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "306",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "396",
+    "category_description": "Install Shower Doors",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install shower doors, interior AG&M scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "306",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "397",
+    "category_description": "Install Glass Handrails",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install glass handrails, interior AG&M scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "306",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "398",
+    "category_description": "Install Interior Doors",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install interior doors.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "306",
+    "applies_to_optional": "307"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "399",
+    "category_description": "Install Exterior Doors",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install exterior doors.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "307",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "400",
+    "category_description": "Install Starter Sill",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install starter sill, unitized curtain wall scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "310",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "401",
+    "category_description": "Install Anchor Plates",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install anchor plates, unitized curtain wall scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "310",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "402",
+    "category_description": "Install Head",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install head flashing/framing, unitized window wall scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "311",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "403",
+    "category_description": "Install Brackets",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install support brackets, unitized window wall scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "311",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "404",
+    "category_description": "Install Fins/Sunshades",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install fins/sunshades (aluminum fins scope).",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "312",
+    "applies_to_optional": "G"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "405",
+    "category_description": "Install Silicone Transition Strips",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install silicone transition strips at movement joints.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "G",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "406",
+    "category_description": "Install Brick",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install brick masonry veneer.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "401",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "407",
+    "category_description": "Install Thin Brick",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install thin brick veneer.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "402",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "408",
+    "category_description": "Install CMU",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install CMU walls.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "400",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "409",
+    "category_description": "Install Decorative CMU",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install decorative CMU.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "400",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "410",
+    "category_description": "Install Rubdown CMU",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install rubdown-finish CMU.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "400",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "411",
+    "category_description": "Install Grout",
+    "category_description_es": "",
+    "category_definition": "Labor cost to grout masonry.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "M",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "412",
+    "category_description": "Install Building Stone",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install natural building stone.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "403",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "413",
+    "category_description": "Install Cast Stone/Precast",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install cast stone/precast units.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "403",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "414",
+    "category_description": "Install Thin Stone Veneer",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install thin stone veneer.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "403",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "415",
+    "category_description": "Install Roof Pavers",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install roof pavers.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "110",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "416",
+    "category_description": "Install Pedestals & Trays",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install paver pedestals and support trays.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "110",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "417",
+    "category_description": "Install Site Pavers",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install ground-level site pavers.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "110, 403",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "418",
+    "category_description": "Install Veneer Ties",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install veneer ties anchoring masonry veneer to backup wall.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "M",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "419",
+    "category_description": "Install Soffit Panels",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install soffit panels.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "C",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Install Labor",
+    "category_range_label_es": "",
+    "category_number": "420",
+    "category_description": "Install Decorative Wood ",
+    "category_description_es": "",
+    "category_definition": "Labor cost to install decorative wood cladding/trim.",
+    "category_definition_es": "",
+    "category_usage": "Measured in linear ft.",
+    "category_usage_es": "",
+    "applies_to_default": "NONE",
+    "applies_to_optional": "C"
+  },
+  {
+    "category_range_label": "Material",
+    "category_range_label_es": "",
+    "category_number": "600",
+    "category_description": "Field Material",
+    "category_description_es": "",
+    "category_definition": "Cost of material purchased for direct field use, including hazardous material charges, not consumables.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "ALL",
+    "applies_to_optional": "NONE"
+  },
+  {
+    "category_range_label": "Material",
+    "category_range_label_es": "",
+    "category_number": "601",
+    "category_description": "Stocked Material",
+    "category_description_es": "",
+    "category_definition": "Cost of material purchased and held in company stock/inventory, not consumables.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "NONE",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Partner Subcontracts",
+    "category_range_label_es": "",
+    "category_number": "800",
+    "category_description": "Subcontract Bregenzer Brothers",
+    "category_description_es": "",
+    "category_definition": "Cost billed by Bregenzer Brothers under a partner subcontract agreement.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "NONE",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "Partner Subcontracts",
+    "category_range_label_es": "",
+    "category_number": "801",
+    "category_description": "Subcontract Reboot",
+    "category_description_es": "",
+    "category_definition": "Cost billed by Reboot under a partner subcontract agreement.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "NONE",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "External Subcontracts",
+    "category_range_label_es": "",
+    "category_number": "900",
+    "category_description": "Subcontract Caulking",
+    "category_description_es": "",
+    "category_definition": "Cost billed by an external subcontractor for caulking scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "NONE",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "External Subcontracts",
+    "category_range_label_es": "",
+    "category_number": "901",
+    "category_description": "Subcontract Hoist",
+    "category_description_es": "",
+    "category_definition": "Cost billed by an external subcontractor for hoist installation, operation, and removal.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "NONE",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "External Subcontracts",
+    "category_range_label_es": "",
+    "category_number": "902",
+    "category_description": "Subcontract Lightweight Concrete",
+    "category_description_es": "",
+    "category_definition": "Cost billed by an external subcontractor for lightweight concrete scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "NONE",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "External Subcontracts",
+    "category_range_label_es": "",
+    "category_number": "903",
+    "category_description": "Subcontract Mechanical",
+    "category_description_es": "",
+    "category_definition": "Cost billed by an external subcontractor for mechanical scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "NONE",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "External Subcontracts",
+    "category_range_label_es": "",
+    "category_number": "904",
+    "category_description": "Subcontract Plumbing",
+    "category_description_es": "",
+    "category_definition": "Cost billed by an external subcontractor for plumbing scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "NONE",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "External Subcontracts",
+    "category_range_label_es": "",
+    "category_number": "905",
+    "category_description": "Subcontract Electrical",
+    "category_description_es": "",
+    "category_definition": "Cost billed by an external subcontractor for electrical scope.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "NONE",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "External Subcontracts",
+    "category_range_label_es": "",
+    "category_number": "906",
+    "category_description": "Subcontract Pavers",
+    "category_description_es": "",
+    "category_definition": "Cost billed by an external subcontractor for paver installation.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "NONE",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "External Subcontracts",
+    "category_range_label_es": "",
+    "category_number": "907",
+    "category_description": "Subcontract Scaffold",
+    "category_description_es": "",
+    "category_definition": "Cost billed by an external subcontractor for scaffold erection/dismantle.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "NONE",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "External Subcontracts",
+    "category_range_label_es": "",
+    "category_number": "908",
+    "category_description": "Subcontract Vacuum",
+    "category_description_es": "",
+    "category_definition": "Cost billed by an external subcontractor for vacuum excavation/debris removal.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "NONE",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "External Subcontracts",
+    "category_range_label_es": "",
+    "category_number": "909",
+    "category_description": "Subcontract Green Roof",
+    "category_description_es": "",
+    "category_definition": "Cost billed by an external subcontractor for green roof installation.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "NONE",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "External Subcontracts",
+    "category_range_label_es": "",
+    "category_number": "910",
+    "category_description": "Subcontract Roofing",
+    "category_description_es": "",
+    "category_definition": "Cost billed by an external subcontractor for roofing installation.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "NONE",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "External Subcontracts",
+    "category_range_label_es": "",
+    "category_number": "911",
+    "category_description": "Subcontract Shingle",
+    "category_description_es": "",
+    "category_definition": "Cost billed by an external subcontractor for shingle roofing installation.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "NONE",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "External Subcontracts",
+    "category_range_label_es": "",
+    "category_number": "912",
+    "category_description": "Subcontract Masonry",
+    "category_description_es": "",
+    "category_definition": "Cost billed by an external subcontractor for masonry installation.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "NONE",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "External Subcontracts",
+    "category_range_label_es": "",
+    "category_number": "913",
+    "category_description": "Subcontract Firestopping",
+    "category_description_es": "",
+    "category_definition": "Cost billed by an external subcontractor for firestopping installation.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "NONE",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "External Subcontracts",
+    "category_range_label_es": "",
+    "category_number": "914",
+    "category_description": "Subcontract Scan",
+    "category_description_es": "",
+    "category_definition": "Cost billed by an external subcontractor to perform EFVM, ELD, infrared scans",
+    "category_definition_es": "",
+    "category_usage": "Holds external cost associated with Scan (159)",
+    "category_usage_es": "",
+    "applies_to_default": "NONE",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "External Subcontracts",
+    "category_range_label_es": "",
+    "category_number": "915",
+    "category_description": "Subcontract Films",
+    "category_description_es": "",
+    "category_definition": "Cost billed by an external subcontractor for protective/window film installation.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "NONE",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "External Subcontracts",
+    "category_range_label_es": "",
+    "category_number": "916",
+    "category_description": "Subcontract Automatic/Revolving Doors",
+    "category_description_es": "",
+    "category_definition": "Cost billed by an external subcontractor for automatic/revolving door installation.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "NONE",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "External Subcontracts",
+    "category_range_label_es": "",
+    "category_number": "917",
+    "category_description": "Subcontract Unitizing/Cassette Application",
+    "category_description_es": "",
+    "category_definition": "Cost billed by an external subcontractor for unitized curtain wall/cassette panel application.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "NONE",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "External Subcontracts",
+    "category_range_label_es": "",
+    "category_number": "918",
+    "category_description": "Subcontract Interior Elevator Pit",
+    "category_description_es": "",
+    "category_definition": "Cost billed by an external subcontractor for interior elevator pit waterproofing.",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "NONE",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "External Subcontracts",
+    "category_range_label_es": "",
+    "category_number": "919",
+    "category_description": "Subcontract Safety",
+    "category_description_es": "",
+    "category_definition": "Cost billed by an external subcontractor for daily third party safety supervision requirements",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "NONE",
+    "applies_to_optional": "ALL"
+  },
+  {
+    "category_range_label": "INFO REQUIRED",
+    "category_range_label_es": "",
+    "category_number": "1000",
+    "category_description": "Info Required",
+    "category_description_es": "",
+    "category_definition": "Placeholder code for accounting purposes",
+    "category_definition_es": "",
+    "category_usage": "",
+    "category_usage_es": "",
+    "applies_to_default": "NONE",
+    "applies_to_optional": "ALL"
+  }
+];
+
+const ANATOMY_SEGMENTS = [
+  {
+    "segment_order": "1",
+    "segment_key": "trade",
+    "example": "R",
+    "is_separator": "N",
+    "segment_label": "Trade Prefix",
+    "segment_label_es": "Prefijo Oficio",
+    "segment_description": "Letter code identifying the trade which performs the work",
+    "segment_description_es": "Código alfabético que identifica el sector que realiza el trabajo",
+    "segment_notes": "Most phases have a default trade based on the trade which typically performs the scope - the trade prefix should be modified where applicable.",
+    "segment_notes_es": "La mayoría de las fases tienen un oficio predeterminado basado en el oficio que suele encargarse del alcance; el prefijo de oficio debe modificarse cuando corresponda."
+  },
+  {
+    "segment_order": "2",
+    "segment_key": "phase",
+    "example": "000",
+    "is_separator": "N",
+    "segment_label": "Phase",
+    "segment_label_es": "Fase",
+    "segment_description": "3-digit number that defines the phase, or scope, of work performed",
+    "segment_description_es": "Número de tres dígitos que define la fase o el alcance del trabajo realizado",
+    "segment_notes": "The phase number is unique and represents a distinct scope of work.",
+    "segment_notes_es": "El número de fase es único y representa un ámbito de trabajo concreto."
+  },
+  {
+    "segment_order": "3",
+    "segment_key": "sep",
+    "example": ".",
+    "is_separator": "Y",
+    "segment_label": ".",
+    "segment_label_es": ".",
+    "segment_description": "Cost code separator",
+    "segment_description_es": "Separador de códigos de coste",
+    "segment_notes": "",
+    "segment_notes_es": ""
+  },
+  {
+    "segment_order": "4",
+    "segment_key": "category",
+    "example": "000",
+    "is_separator": "N",
+    "segment_label": "Category",
+    "segment_label_es": "Categoría",
+    "segment_description": "3-digit number that defines the specific cost within a phase of work",
+    "segment_description_es": "Número de tres dígitos que define el coste específico dentro de una fase del trabajo",
+    "segment_notes": "The cost category is unique and represents a distinct cost, within one or many scopes of work.",
+    "segment_notes_es": "La categoría de coste es única y representa un coste concreto, dentro de uno o varios ámbitos de trabajo."
+  },
+  {
+    "segment_order": "5",
+    "segment_key": "suffix",
+    "example": "XXX",
+    "is_separator": "N",
+    "segment_label": "Suffix (optional)",
+    "segment_label_es": "Sufijo (opcional)",
+    "segment_description": "Up to 3 characters, optional suffix reserved for operational granularity",
+    "segment_description_es": "Hasta 3 caracteres; sufijo opcional reservado para la granularidad operativa",
+    "segment_notes": "The suffix is optional and should be used where operations wants more detailed tracking for the cost.",
+    "segment_notes_es": "El sufijo es opcional y debe utilizarse cuando el departamento de operaciones necesite un seguimiento más detallado del coste."
+  }
+];
+
+const SUFFIX_GUIDE = [
+  {
+    "guide_order": "1",
+    "guide_type": "intro",
+    "guide_text": "The three-character suffix is optional and reserved for operational granularity only.",
+    "guide_text_es": "El sufijo de tres caracteres es opcional y está reservado exclusivamente para la granularidad operativa."
+  },
+  {
+    "guide_order": "2",
+    "guide_type": "note",
+    "guide_text": "Use to distinguish zone, area, complexity, or any 'distinctness' within the same category. ",
+    "guide_text_es": "Se utiliza para distinguir entre zonas, áreas, grados de complejidad o cualquier otra característica distinctiva dentro de una misma categoría."
+  },
+  {
+    "guide_order": "3",
+    "guide_type": "subnote",
+    "guide_text": "Use the suffix when operations need to track cost and/or productivity differences within the same category (e.g. roofing area, fab complexity, distinguished subcontractors)",
+    "guide_text_es": "Utiliza el sufijo cuando sea necesario realizar un seguimiento de las diferencias de coste y/o productividad dentro de una misma categoría (por ejemplo, superficie de cubierta, complejidad de la fabricación, subcontratistas destacados)."
+  },
+  {
+    "guide_order": "5",
+    "guide_type": "subnote",
+    "guide_text": "Do NOT use the suffix to describe a different type of work. If the work is different, it belongs in a different category.",
+    "guide_text_es": "NO utilices el sufijo para describir un tipo de trabajo diferente. Si el trabajo es diferente, debe clasificarse en otra categoría."
+  },
+  {
+    "guide_order": "4",
+    "guide_type": "good",
+    "guide_text": "Good = Install composite panels zone 1, zone 2",
+    "guide_text_es": "Bien = Instalar paneles compuestos en la zona 1 y la zona 2"
+  },
+  {
+    "guide_order": "6",
+    "guide_type": "bad",
+    "guide_text": "Bad = Install single skin panels, install screenwall",
+    "guide_text_es": "Mal = Instalar paneles metálicos de una sola capa, instalar paneles de cerramiento no estanco"
+  },
+  {
+    "guide_order": "7",
+    "guide_type": "note",
+    "guide_text": "Suffix codes should be consistent within a project. ",
+    "guide_text_es": "Los códigos de sufijo deben ser coherentes dentro de un mismo proyecto."
+  },
+  {
+    "guide_order": "8",
+    "guide_type": "subnote",
+    "guide_text": "Agree on suffix conventions at project kickoff.",
+    "guide_text_es": "Acordad las convenciones sobre sufijos al inicio del proyecto."
+  },
+  {
+    "guide_order": "9",
+    "guide_type": "subnote",
+    "guide_text": "Document suffix conventions consistently to maintain historical context as desired.",
+    "guide_text_es": "Documenta de forma coherente las convenciones de los sufijos para conservar el contexto histórico según sea necesario."
+  },
+  {
+    "guide_order": "10",
+    "guide_type": "note",
+    "guide_text": "Summary reporting drops the suffix.",
+    "guide_text_es": "En los informes resumidos se omite el sufijo."
+  },
+  {
+    "guide_order": "11",
+    "guide_type": "subnote",
+    "guide_text": "The category code is what counts for primary cost tracking; the detail level is a bonus for operational context.",
+    "guide_text_es": "El código de categoría es lo que cuenta a la hora de realizar el seguimiento de los costes primarios; el nivel de detalle es un valor añadido para el contexto operativo."
+  },
+  {
+    "guide_order": "12",
+    "guide_type": "note",
+    "guide_text": "The cost code committee exists to ensure cost codes appropriately capture work. If a decision provides value, communicate so we can learn from it!",
+    "guide_text_es": "El comité de códigos de costes tiene como objetivo garantizar que los códigos de costes reflejen adecuadamente el trabajo realizado. Si una decisión aporta valor, ¡comunícala para que podamos aprender de ella!"
+  },
+  {
+    "guide_order": "13",
+    "guide_type": "note",
+    "guide_text": "When in doubt, contact your department lead and the matter will be elevated to the cost code committee as needed.",
+    "guide_text_es": "En caso de duda, ponte en contacto con el responsable de tu departamento y el asunto se remitirá al comité de códigos de costes si es necesario."
+  }
+];
+
+// ===== DATA END =======================================================
+
+// =====================================================================================
+// STYLE ONLY — trade colors are a display concern, not workbook data,
+// so they live here rather than in tbl_trades. Add a line if a new
+// trade_code shows up; anything missing falls back to a neutral gray.
+// =====================================================================================
+const TRADE_COLORS = { R:"#34657F", C:"#8A6D3B", G:"#6B4C9A", M:"#3E7A4F", H:"#C00000", "—":"#5C5C5C", "":"#5C5C5C" };
+function isSharedTrade(code){ return !code || code === "—"; }
+function colorFor(code){ return TRADE_COLORS[code] || "#6B7680"; }
+function tradeByCode(code){ return TRADES.find(t => t.trade_code === code) || { trade_code: code, trade_label: code }; }
+function tradeChip(code){
+  const c = colorFor(code);
+  return `<span class="trade-chip" style="background:${c}1A; color:${c};">${code}</span>`;
+}
+
+// =====================================================================================
+// LANGUAGE / TRANSLATION
+// -------------------------------------------------------------------------------------
+// currentLang: "en" or "es". Any workbook field can carry a "<field>_es"
+// sibling column (added by editing the Excel table — no Python change
+// needed, build_dictionary.py already writes out whatever columns exist).
+// tf(obj, field) reads that sibling when Spanish is active and the cell
+// is non-blank, otherwise it falls back to the English field — so the
+// page never shows a blank string while translations are in progress.
+// UI_STRINGS holds the static chrome text (buttons, labels, tab names)
+// that doesn't come from the workbook at all.
+// =====================================================================================
+let currentLang = "en";
+
+function tf(obj, field){
+  if (!obj) return "";
+  if (currentLang === "es"){
+    const esVal = obj[field + "_es"];
+    if (esVal !== undefined && esVal !== null && String(esVal).trim() !== "") return esVal;
+  }
+  return obj[field] || "";
+}
+
+const UI_STRINGS = {
+  en: {
+    pageTitle: "EDA Cost Code Dictionary",
+    searchPlaceholder: "Search a phase, category, or trade",
+    anatomyRulesBtn: "Anatomy & Rules",
+    colTrade: "Trade", colCode: "Code", colCat: "Category", colStatus: "Status",
+    footerNote: "Placeholder rows — swap in the real EDA_Cost_Code_Dictionary.xlsx export to go live.",
+    noResults: "No phases or categories match your search.",
+    noCategories: "No categories currently assigned to this phase.",
+    default: "Default", optional: "Optional",
+    usage: "Usage:", viewing: "viewing:", defaultTag: "(default)", shared: "shared",
+    panelTitle: "Anatomy & Rules",
+    tabAnatomy: "Anatomy", tabRules: "Rules", tabSuffix: "Suffixes", tabHistory: "History",
+    anatomyHint: "Tap a part of the code below to see what it means.",
+    tradeRefTitle: "Trade & phase-range reference",
+    categoryRangeTitle: "Category number ranges",
+    categoryRangeHint: "New categories are assigned a number within the range matching their cost type — this keeps the committee from double-booking a number.",
+    rulesCallout: "All field and office staff are expected to follow these rules. Exceptions require formal approval from the cost code committee.",
+    reservedSuffixTitle: "Reserved suffixes",
+    reservedSuffixHint: "These codes are reserved and mean the same thing everywhere they appear — don't repurpose them for other zone/area tracking.",
+    suffixCallout: "When in doubt, contact your department lead — the matter will be elevated to the cost code committee as needed.",
+    docInfoTitle: "Document info",
+    versionHistoryTitle: "Version history",
+    thField: "Field", thValue: "Value", thCode: "Code", thMeaning: "Meaning",
+    thTradeRange: "Trade & range", thRange: "Range", thType: "Type",
+    thVersion: "Version", thDate: "Date", thAuthor: "Author", thNotes: "Notes",
+    metaVersion: "Version", metaEffective: "Effective date", metaStatus: "Status",
+    metaUpdatedBy: "Last updated by", metaUpdated: "Last updated",
+    ruleTags: { trade: "trade", phase: "phase", category: "category", suffix: "suffix" }
+  },
+  es: {
+    pageTitle: "Diccionario de Códigos de Costo de EDA",
+    searchPlaceholder: "Buscar una fase, categoría u oficio",
+    anatomyRulesBtn: "Anatomía y Reglas",
+    colTrade: "Oficio", colCode: "Código", colCat: "Categoría", colStatus: "Estado",
+    footerNote: "Filas de muestra — reemplácelas con la exportación real de EDA_Cost_Code_Dictionary.xlsx para publicar.",
+    noResults: "Ninguna fase o categoría coincide con su búsqueda.",
+    noCategories: "Actualmente no hay categorías asignadas a esta fase.",
+    default: "Predeterminado", optional: "Opcional",
+    usage: "Uso:", viewing: "viendo:", defaultTag: "(predeterminado)", shared: "compartido",
+    panelTitle: "Anatomía y Reglas",
+    tabAnatomy: "Anatomía", tabRules: "Reglas", tabSuffix: "Sufijos", tabHistory: "Historial",
+    anatomyHint: "Toque una parte del código abajo para ver su significado.",
+    tradeRefTitle: "Referencia de oficios y rangos de fase",
+    categoryRangeTitle: "Rangos de números de categoría",
+    categoryRangeHint: "A las nuevas categorías se les asigna un número dentro del rango correspondiente a su tipo de costo — esto evita que el comité asigne un número dos veces.",
+    rulesCallout: "Se espera que todo el personal de campo y de oficina siga estas reglas. Las excepciones requieren aprobación formal del comité de códigos de costo.",
+    reservedSuffixTitle: "Sufijos reservados",
+    reservedSuffixHint: "Estos códigos están reservados y significan lo mismo en cualquier lugar donde aparezcan — no los reutilice para otro seguimiento de zona/área.",
+    suffixCallout: "En caso de duda, comuníquese con el líder de su departamento — el asunto se elevará al comité de códigos de costo según sea necesario.",
+    docInfoTitle: "Información del documento",
+    versionHistoryTitle: "Historial de versiones",
+    thField: "Campo", thValue: "Valor", thCode: "Código", thMeaning: "Significado",
+    thTradeRange: "Oficio y rango", thRange: "Rango", thType: "Tipo",
+    thVersion: "Versión", thDate: "Fecha", thAuthor: "Autor", thNotes: "Notas",
+    metaVersion: "Versión", metaEffective: "Fecha de vigencia", metaStatus: "Estado",
+    metaUpdatedBy: "Última actualización por", metaUpdated: "Última actualización",
+    ruleTags: { trade: "oficio", phase: "fase", category: "categoría", suffix: "sufijo" }
+  }
+};
+function ui(){ return UI_STRINGS[currentLang]; }
+
+function setLang(lang){
+  currentLang = lang;
+  document.getElementById('langBtnEn').classList.toggle('active', lang === 'en');
+  document.getElementById('langBtnEs').classList.toggle('active', lang === 'es');
+  applyStaticStrings();
+  renderFilters();
+  render();
+  renderAnatomy();
+  renderTradeRef();
+  renderReservedSuffixes();
+  renderSuffixGuide();
+  renderCategoryRanges();
+  renderHeaderSub();
+  renderMeta();
+  renderChangelog();
+  renderRules();
+}
+
+function applyStaticStrings(){
+  const s = ui();
+  document.title = s.pageTitle;
+  document.getElementById('pageTitle').textContent = s.pageTitle;
+  document.getElementById('searchInput').placeholder = s.searchPlaceholder;
+  document.getElementById('anatomyRulesBtn').textContent = s.anatomyRulesBtn;
+  document.getElementById('colTrade').textContent = s.colTrade;
+  document.getElementById('colCode').textContent = s.colCode;
+  document.getElementById('colCat').textContent = s.colCat;
+  document.getElementById('colStatus').textContent = s.colStatus;
+  document.getElementById('footerNote').textContent = s.footerNote;
+  document.getElementById('panelTitle').textContent = s.panelTitle;
+  document.getElementById('tabAnatomy').textContent = s.tabAnatomy;
+  document.getElementById('tabRules').textContent = s.tabRules;
+  document.getElementById('tabSuffix').textContent = s.tabSuffix;
+  document.getElementById('tabHistory').textContent = s.tabHistory;
+  document.getElementById('anatomyHint').textContent = s.anatomyHint;
+  document.getElementById('tradeRefTitle').textContent = s.tradeRefTitle;
+  document.getElementById('categoryRangeTitle').textContent = s.categoryRangeTitle;
+  document.getElementById('categoryRangeHint').textContent = s.categoryRangeHint;
+  document.getElementById('rulesCallout').textContent = s.rulesCallout;
+  document.getElementById('reservedSuffixTitle').textContent = s.reservedSuffixTitle;
+  document.getElementById('reservedSuffixHint').textContent = s.reservedSuffixHint;
+  document.getElementById('suffixCallout').textContent = s.suffixCallout;
+  document.getElementById('docInfoTitle').textContent = s.docInfoTitle;
+  document.getElementById('versionHistoryTitle').textContent = s.versionHistoryTitle;
+}
+
+// =====================================================================================
+// AppliesTo resolver — shared by applies_to_default / applies_to_optional
+// on categories. Each token resolves to a {phaseNumber, tradeCode} entry.
+// tradeCode is null when the token doesn't scope to one trade — meaning
+// the category counts under that phase no matter which trade chip is
+// currently selected. tradeCode is set when a token is fused with a
+// trade letter, in which case the category only counts while that exact
+// trade is toggled — this is what lets a phase that can be viewed under
+// more than one trade (e.g. Pavers: R or M) show different categories
+// per trade instead of the same full list under both.
+//   (blank)        -> shared/general-conditions phases, any trade
+//                      (any phase whose default_trade_code is blank or "—")
+//   "NONE"         -> nothing — explicit "not applicable"
+//   "ALL"          -> every phase, any trade
+//   "R"            -> every phase whose default_trade_code is R (any trade viewing it)
+//   "101,205"      -> explicit phase numbers, any trade
+//   "100-199"      -> a phase-number range, any trade
+//   "R101"         -> phase 101, but ONLY while trade R is the one toggled/selected
+//   "R,101,M405,300-399" -> any mix of the above, comma-separated
+// =====================================================================================
+function resolveApplyEntries(str, phases){
+  const trimmed = String(str || "").trim();
+  const entries = [];
+
+  if (trimmed === ""){
+    phases.forEach(p => { if (isSharedTrade(p.default_trade_code)) entries.push({ phaseNumber: p.phase_number, tradeCode: null }); });
+    return entries;
+  }
+  if (trimmed.toUpperCase() === "NONE"){
+    return entries;
+  }
+
+  const tokens = trimmed.split(',').map(t => t.trim()).filter(Boolean);
+  for (const token of tokens){
+    if (token.toUpperCase() === 'ALL'){
+      phases.forEach(p => entries.push({ phaseNumber: p.phase_number, tradeCode: null }));
+      continue;
+    }
+    // fused trade + phase, e.g. "R101" or "M405" -> scoped to that one trade
+    const fusedMatch = token.match(/^([A-Z—])(\d{3})$/i);
+    if (fusedMatch){
+      entries.push({ phaseNumber: fusedMatch[2], tradeCode: fusedMatch[1].toUpperCase() });
+      continue;
+    }
+    // bare trade letter -> every phase that trade can appear on (as its
+    // default OR as one of its alt trades), but ONLY while that trade is
+    // the one currently toggled — otherwise a trade-wide category (e.g.
+    // "General Roofing Labor" tagged just "R") would stay stuck showing
+    // even after switching a shared phase's toggle to a different trade.
+    if (/^[A-Z—]$/i.test(token)){
+      const letter = token.toUpperCase();
+      phases.forEach(p => { if (tradesForPhase(p).includes(letter)) entries.push({ phaseNumber: p.phase_number, tradeCode: letter }); });
+      continue;
+    }
+    const rangeMatch = token.match(/^(\d{3})-(\d{3})$/);
+    if (rangeMatch){
+      const lo = parseInt(rangeMatch[1], 10), hi = parseInt(rangeMatch[2], 10);
+      phases.forEach(p => { const n = parseInt(p.phase_number, 10); if (n >= lo && n <= hi) entries.push({ phaseNumber: p.phase_number, tradeCode: null }); });
+      continue;
+    }
+    entries.push({ phaseNumber: token, tradeCode: null });
+  }
+  return entries;
+}
+
+// Back-compat helper: just the phase numbers a string resolves to,
+// ignoring trade scoping — used wherever only "is this category assigned
+// to this phase at all" matters, not which trade.
+function resolvePhaseNumbers(str, phases){
+  return new Set(resolveApplyEntries(str, phases).map(e => e.phaseNumber));
+}
+
+function categoriesForPhase(phase, categories, phases, currentTrade){
+  // Dedupe by category_number so a category never appears twice under
+  // the same phase — if it resolves as both Default and Optional
+  // (whether from one row's overlapping fields or from duplicate rows
+  // sharing a category_number), Default always wins.
+  const byNumber = new Map();
+  const matchesPhaseAndTrade = (entries) => entries.some(e =>
+    e.phaseNumber === phase.phase_number && (e.tradeCode === null || e.tradeCode === currentTrade)
+  );
+
+  categories.forEach(c => {
+    const defEntries = resolveApplyEntries(c.applies_to_default, phases);
+    const optEntries = resolveApplyEntries(c.applies_to_optional, phases);
+    let status = null;
+    if (matchesPhaseAndTrade(defEntries)) status = "Default";
+    else if (matchesPhaseAndTrade(optEntries)) status = "Optional";
+    if (!status) return;
+
+    const distinctPhases = new Set([...defEntries, ...optEntries].map(e => e.phaseNumber));
+    const existing = byNumber.get(c.category_number);
+    const isUpgrade = existing && existing.categoryStatus === "Optional" && status === "Default";
+    if (!existing || isUpgrade){
+      byNumber.set(c.category_number, { ...c, categoryStatus: status, sharedAcross: distinctPhases.size > 1 });
+    }
+  });
+  return [...byNumber.values()];
+}
+
+function tradesForPhase(phase){
+  const alt = phase.alt_trade_codes ? String(phase.alt_trade_codes).split(',').map(t => t.trim()).filter(Boolean) : [];
+  return [phase.default_trade_code, ...alt];
+}
+
+// =====================================================================================
+// Filters, search, and main render
+// =====================================================================================
+let activeType = null;
+let selectedTrade = {};   // phase_number -> trade_code currently being viewed
+let openPhases = new Set();
+let openOptionalSections = new Set(); // phase_numbers whose Optional section is expanded
+
+function typeList(){ return [...new Set(PHASES.map(p => p.default_trade_label))]; }
+function renderFilters(){
+  const el = document.getElementById('typeFilters');
+  el.innerHTML = typeList().map(t => {
+    const phaseForType = PHASES.find(p => p.default_trade_label === t);
+    const label = phaseForType ? tf(phaseForType, 'default_trade_label') : t;
+    return `<div class="type-chip ${activeType===t?'active':''}" onclick="toggleType('${t}')">${label}</div>`;
+  }).join('');
+}
+function toggleType(t){ activeType = activeType === t ? null : t; renderFilters(); render(); }
+function matches(text, q){ return (text||'').toLowerCase().includes(q.toLowerCase()); }
+
+function selectPhaseTrade(phaseNumber, tradeCode){
+  selectedTrade[phaseNumber] = tradeCode;
+  render();
+}
+function togglePhaseOpen(phaseNumber){
+  if (openPhases.has(phaseNumber)) openPhases.delete(phaseNumber);
+  else openPhases.add(phaseNumber);
+  render();
+}
+
+function combineDefinition(c, phase, tradeCode){
+  let d = tf(c, 'category_definition').trim();
+  if (d.endsWith(".")) d = d.slice(0, -1) + ",";
+  const phaseDesc = tf(phase, 'phase_description');
+  const tradeLabel = tf(tradeByCode(tradeCode), 'trade_label');
+  if (currentLang === 'es'){
+    return `${d} para ${phaseDesc} en el alcance de ${tradeLabel}.`;
+  }
+  return `${d} for ${phaseDesc} in ${tradeLabel} scope.`;
+}
+
+function categoryRowHtml(c, current, phase){
+  const s = ui();
+  const fullCode = `${isSharedTrade(current) ? "" : current}${phase.phase_number}.${c.category_number}`;
+  const combinedDef = combineDefinition(c, phase, current);
+  const statusLabel = c.categoryStatus === "Default" ? s.default : s.optional;
+  return `
+    <div class="category-row" onclick="this.classList.toggle('expanded'); event.stopPropagation();">
+      <div class="trade-cell">${tradeChip(current)}</div>
+      <div class="category-code">${c.category_number}</div>
+      <div class="category-body">
+        <div class="category-name">${tf(c, 'category_description')}<span class="category-range-tag">${tf(c, 'category_range_label')}</span>${c.sharedAcross ? `<span class="category-shared-tag">${s.shared}</span>` : ''}</div>
+        <div class="category-desc">
+          <div class="category-full-code">${fullCode}</div>
+          <div>${combinedDef}</div>
+        </div>
+        ${c.category_usage ? `<div class="category-usage"><strong>${s.usage}</strong> ${tf(c, 'category_usage')}</div>` : ''}
+      </div>
+      <div class="category-status status-${c.categoryStatus}">${statusLabel}</div>
+    </div>`;
+}
+
+function toggleOptionalSection(phaseNumber){
+  if (openOptionalSections.has(phaseNumber)) openOptionalSections.delete(phaseNumber);
+  else openOptionalSections.add(phaseNumber);
+  render();
+}
+
+function buildPhaseGroupHtml(phase, catsToShow, isOpen, forceOpenOptional){
+  const s = ui();
+  const current = selectedTrade[phase.phase_number] || phase.default_trade_code;
+  const currentColor = colorFor(current);
+  const currentLabel = tf(tradeByCode(current), 'trade_label');
+  const trades = tradesForPhase(phase);
+  const onAltTrade = current !== phase.default_trade_code;
+  const displayName = onAltTrade ? `${currentLabel} ${tf(phase, 'phase_description')}` : tf(phase, 'phase_description');
+
+  const tradeToggle = trades.length > 1 ? `
+    <div class="trade-toggle">
+      ${trades.map(code => {
+        const c = colorFor(code);
+        const active = code === current;
+        return `<span class="trade-toggle-chip ${active ? 'active' : ''}"
+          style="${active ? `background:${c}; border-color:${c}; color:#fff;` : `color:${c}; border-color:${c};`}"
+          onclick="event.stopPropagation(); selectPhaseTrade('${phase.phase_number}','${code}')">${code}</span>`;
+      }).join('')}
+    </div>` : '';
+
+  const defaultCats = catsToShow.filter(c => c.categoryStatus === "Default");
+  const optionalCats = catsToShow.filter(c => c.categoryStatus === "Optional");
+  const optionalOpen = forceOpenOptional || openOptionalSections.has(phase.phase_number);
+
+  let categoryListHtml;
+  if (!catsToShow.length){
+    categoryListHtml = `<div style="padding:14px 16px; font-size:12px; color:var(--muted);">${s.noCategories}</div>`;
+  } else {
+    categoryListHtml = '';
+    if (defaultCats.length){
+      categoryListHtml += `<div class="category-section-label">${s.default}</div>` + defaultCats.map(c => categoryRowHtml(c, current, phase)).join('');
+    }
+    if (optionalCats.length){
+      categoryListHtml += `<div class="category-section-label optional-toggle" onclick="event.stopPropagation(); toggleOptionalSection('${phase.phase_number}')">
+        ${s.optional} (${optionalCats.length})
+        <span class="section-caret ${optionalOpen ? 'open' : ''}">▶</span>
+      </div>`;
+      if (optionalOpen){
+        categoryListHtml += optionalCats.map(c => categoryRowHtml(c, current, phase)).join('');
+      }
+    }
+  }
+
+  return `<div class="phase-group ${isOpen ? 'open' : ''}">
+    <div class="phase-header" onclick="togglePhaseOpen('${phase.phase_number}')">
+      <div class="phase-left">
+        <div class="phase-code">${isSharedTrade(current) ? "" : current}${phase.phase_number}</div>
+        <div>
+          <div class="phase-name">${displayName}</div>
+          <div class="phase-meta">
+            ${tf(phase, 'default_trade_label')} ·
+            <span class="phase-default-trade" style="color:${currentColor};">${s.viewing} ${current}${current === phase.default_trade_code ? ' ' + s.defaultTag : ''}</span>
+          </div>
+          ${tradeToggle}
+          <div class="phase-def">${tf(phase, 'phase_definition')}</div>
+          ${phase.phase_usage ? `<div class="phase-usage"><strong>${s.usage}</strong> ${tf(phase, 'phase_usage')}</div>` : ''}
+        </div>
+      </div>
+      <div class="caret">▶</div>
+    </div>
+    <div class="category-list">
+      ${categoryListHtml}
+    </div>
+  </div>`;
+}
+
+function render(){
+  const s = ui();
+  const q = document.getElementById('searchInput').value.trim();
+  const container = document.getElementById('results');
+  let any = false;
+  let html = '';
+
+  PHASES.forEach(phase => {
+    if (activeType && phase.default_trade_label !== activeType) return;
+
+    const currentTrade = selectedTrade[phase.phase_number] || phase.default_trade_code;
+    const phaseCats = categoriesForPhase(phase, CATEGORIES, PHASES, currentTrade);
+    const phaseMatch = !q || matches(tf(phase, 'phase_description'), q) || matches(phase.phase_number, q)
+      || matches(tf(phase, 'default_trade_label'), q);
+    const catMatches = phaseCats.filter(c =>
+      !q || matches(tf(c, 'category_description'), q) || matches(c.category_number, q) || matches(tf(c, 'category_definition'), q)
+    );
+
+    if (!q || phaseMatch || catMatches.length){
+      any = true;
+      const catsToShow = (!q || phaseMatch) ? phaseCats : catMatches;
+      const isOpen = q ? true : openPhases.has(phase.phase_number);
+      html += buildPhaseGroupHtml(phase, catsToShow, isOpen, !!q);
+    }
+  });
+
+  container.innerHTML = any ? html : `<div class="no-results">${s.noResults}</div>`;
+}
+
+// =====================================================================================
+// Anatomy panel — driven by ANATOMY_SEGMENTS (tbl_anatomy), sorted by segment_order
+// =====================================================================================
+function renderAnatomy(){
+  const segments = [...ANATOMY_SEGMENTS].sort((a, b) => a.segment_order - b.segment_order);
+  const ex = document.getElementById('anatomyExample');
+  const labels = document.getElementById('anatomyLabels');
+  ex.innerHTML = segments.map(a =>
+    a.is_separator === "Y" ? `<div class="anatomy-seg sep">${a.example}</div>`
+          : `<div class="anatomy-seg" data-key="${a.segment_key}" onclick="selectAnatomy('${a.segment_key}')">${a.example}</div>`
+  ).join('');
+  labels.innerHTML = segments.map(a =>
+    `<div class="anatomy-label" style="width:${a.example.length * 13 + 16}px;">${a.is_separator === "Y" ? '' : tf(a, 'segment_label')}</div>`
+  ).join('');
+  const firstSelectable = segments.find(a => a.is_separator !== "Y");
+  if (firstSelectable) selectAnatomy(firstSelectable.segment_key);
+}
+function selectAnatomy(key){
+  document.querySelectorAll('.anatomy-seg').forEach(el => el.classList.toggle('active', el.dataset.key === key));
+  const a = ANATOMY_SEGMENTS.find(x => x.segment_key === key);
+  document.getElementById('anatomyDetail').innerHTML = `
+    <div class="d-label">${tf(a, 'segment_label')}</div>
+    <div class="d-desc">${tf(a, 'segment_description')}</div>
+    ${a.segment_notes ? `<div class="d-extra">${tf(a, 'segment_notes')}</div>` : ''}
+  `;
+}
+function renderTradeRef(){
+  const s = ui();
+  const el = document.getElementById('tradeRefTable');
+  el.innerHTML = `<tr><th>${s.thCode}</th><th>${s.thTradeRange}</th></tr>` +
+    TRADES.map(t => `
+      <tr><td class="reserved-code">${t.trade_code}</td><td>
+        <strong>${tf(t, 'trade_label')}</strong> — ${t.phase_range_start}–${t.phase_range_end}
+        <br><span style="color:var(--muted); font-size:11px;">${tf(t, 'phase_range_notes')}</span>
+      </td></tr>`
+    ).join('');
+}
+function renderSuffixGuide(){
+  const el = document.getElementById('suffixGuideList');
+  const sorted = [...SUFFIX_GUIDE].sort((a, b) => a.guide_order - b.guide_order);
+  el.innerHTML = sorted.map(g => {
+    const text = tf(g, 'guide_text');
+    if (g.guide_type === "good") return `<div class="suffix-example suffix-good">✓ ${text}</div>`;
+    if (g.guide_type === "bad") return `<div class="suffix-example suffix-bad">✗ ${text}</div>`;
+    if (g.guide_type === "subnote") return `<div class="suffix-subnote">${text}</div>`;
+    if (g.guide_type === "note") return `<p style="font-size:12.5px; color:var(--muted); line-height:1.6; margin-top:12px;">${text}</p>`;
+    return `<p style="font-size:13px; line-height:1.6;">${text}</p>`;
+  }).join('');
+}
+function renderReservedSuffixes(){
+  const s = ui();
+  const el = document.getElementById('reservedTable');
+  el.innerHTML = `<tr><th>${s.thCode}</th><th>${s.thMeaning}</th></tr>` +
+    RESERVED_SUFFIXES.map(r => `<tr><td class="reserved-code">${r.suffix_code}</td><td>${tf(r, 'suffix_meaning')}</td></tr>`).join('');
+}
+function renderCategoryRanges(){
+  const s = ui();
+  const el = document.getElementById('categoryRangeTable');
+  el.innerHTML = `<tr><th>${s.thRange}</th><th>${s.thType}</th></tr>` +
+    CATEGORY_RANGES.map(r => `<tr><td class="reserved-code">${r.category_range_start}–${r.category_range_end}</td><td>${tf(r, 'category_range_label')}<br><span style="color:var(--muted); font-size:11px;">${tf(r, 'category_range_notes')}</span></td></tr>`).join('');
+}
+function renderHeaderSub(){
+  document.getElementById('headerSub').textContent = `v${META.version} · ${tf(META, 'status')}`;
+}
+function renderMeta(){
+  const s = ui();
+  const el = document.getElementById('metaTable');
+  el.innerHTML = `
+    <tr><th>${s.thField}</th><th>${s.thValue}</th></tr>
+    <tr><td>${s.metaVersion}</td><td>${META.version}</td></tr>
+    <tr><td>${s.metaEffective}</td><td>${META.effective_date}</td></tr>
+    <tr><td>${s.metaStatus}</td><td>${tf(META, 'status')}</td></tr>
+    <tr><td>${s.metaUpdatedBy}</td><td>${META.last_updated_by}</td></tr>
+    <tr><td>${s.metaUpdated}</td><td>${META.last_updated_date}</td></tr>
+  `;
+}
+function renderChangelog(){
+  const s = ui();
+  const el = document.getElementById('changelogTable');
+  el.innerHTML = `<tr><th>${s.thVersion}</th><th>${s.thDate}</th><th>${s.thAuthor}</th><th>${s.thNotes}</th></tr>` +
+    CHANGE_LOG.map(c => `<tr><td class="reserved-code">${c.version}</td><td>${c.change_date}</td><td>${c.author}</td><td>${tf(c, 'notes')}</td></tr>`).join('');
+}
+
+let activeRuleFilter = null;
+function ruleTagHtml(tag){
+  const s = ui();
+  return `<span class="rule-tag rule-tag-${tag}">${s.ruleTags[tag] || tag}</span>`;
+}
+function renderRules(){
+  const s = ui();
+  const el = document.getElementById('rulesList');
+  const filterBar = `<div class="rule-filter-bar">
+    ${['trade','phase','category','suffix'].map(t =>
+      `<div class="rule-filter ${activeRuleFilter===t?'active':''}" onclick="toggleRuleFilter('${t}')">${s.ruleTags[t]}</div>`
+    ).join('')}
+  </div>`;
+  const rows = RULES
+    .map(r => ({ ...r, tags: r.applies_to.split(',').map(x => x.trim()) }))
+    .filter(r => !activeRuleFilter || r.tags.includes(activeRuleFilter));
+  el.innerHTML = filterBar + rows.map(r => `
+    <div class="rule-row">
+      <div class="rule-num">${r.rule_number}.</div>
+      <div class="rule-body">
+        <div class="rule-text">${tf(r, 'rule_text')}</div>
+        <div class="rule-tags">${r.tags.map(ruleTagHtml).join('')}</div>
+      </div>
+    </div>
+  `).join('');
+}
+function toggleRuleFilter(t){
+  activeRuleFilter = activeRuleFilter === t ? null : t;
+  renderRules();
+}
+function openPanel(tab){ document.getElementById('panelOverlay').classList.add('open'); switchTab(tab || 'anatomy'); }
+function closePanel(){ document.getElementById('panelOverlay').classList.remove('open'); }
+function switchTab(tab){
+  document.querySelectorAll('.panel-tab').forEach(el => el.classList.toggle('active', el.dataset.tab === tab));
+  document.querySelectorAll('.panel-tab-content').forEach(el => el.classList.toggle('active', el.dataset.content === tab));
+}
+
+setLang('en');
+</script>
+
+</body>
+</html>
